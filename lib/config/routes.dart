@@ -19,6 +19,10 @@ import '../ui/screens/progress/diastasis_recti_screen.dart';
 import '../ui/screens/home/pelvic_floor_assessment_screen.dart';
 import '../ui/screens/home/pelvic_floor_checkin_screen.dart';
 
+// SOS screens
+import '../ui/screens/sos/sos_home_screen.dart';
+import '../ui/screens/sos/sos_routine_screen.dart';
+
 // TODO: Import other screens once they are implemented
 // import 'package:postpartum_recovery_app/ui/screens/splash_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/home_screen.dart';
@@ -75,7 +79,7 @@ class AppRouter {
 
   // SOS routes
   static const String sosHome = '/sos';
-  static const String sosRoutine = '/sos/routine';
+  static const String sosRoutine = '/sos/routine/:id';
 
   // Settings routes
   static const String settings = '/settings';
@@ -265,20 +269,22 @@ class AppRouter {
       GoRoute(
         path: sosHome,
         name: 'sosHome',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('SOS Home Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const SosHomeScreen(),
       ),
       GoRoute(
         path: sosRoutine,
         name: 'sosRoutine',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('SOS Routine Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) {
+          final routineId = int.tryParse(state.pathParameters['id'] ?? '');
+          if (routineId == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text('Invalid routine ID'),
+              ),
+            );
+          }
+          return SosRoutineScreen(routineId: routineId);
+        },
       ),
 
       // Settings Routes
