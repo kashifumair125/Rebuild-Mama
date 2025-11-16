@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'app_database.dart';
+import 'sos_seed_data.dart';
 
 /// Seed data for workouts and exercises
 /// This file contains all exercise data for the 3-level workout system
@@ -16,6 +17,9 @@ class WorkoutSeedData {
 
     // Seed Level 3: Strengthen (12+ weeks)
     await _seedLevel3(db, userId);
+
+    // Seed SOS routines (independent of user)
+    await SosSeedData.seedSosData(db);
   }
 
   /// Level 1: Repair (0-6 weeks) - 5 exercises, 10 min total

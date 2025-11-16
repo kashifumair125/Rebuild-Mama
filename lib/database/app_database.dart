@@ -12,6 +12,7 @@ import 'daos/exercise_dao.dart';
 import 'daos/progress_dao.dart';
 import 'daos/kegel_session_dao.dart';
 import 'daos/workout_session_dao.dart';
+import 'daos/sos_routine_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -193,6 +194,84 @@ class WorkoutSessions extends Table {
   Set<Column> get primaryKey => {workoutSessionId};
 }
 
+/// SOS Routines table - stores emergency relief routine definitions
+@DataClassName('SosRoutine')
+class SosRoutines extends Table {
+  IntColumn get sosRoutineId => integer().autoIncrement()();
+
+  TextColumn get name => text()();
+  TextColumn get description => text()();
+
+  /// Icon emoji for display
+  TextColumn get iconEmoji => text()();
+
+  /// Total duration in minutes
+  IntColumn get durationMinutes => integer()();
+
+  /// Number of exercises in this routine
+  IntColumn get exerciseCount => integer()();
+
+  /// Difficulty level: 'easy', 'moderate', 'advanced'
+  TextColumn get difficulty => text()();
+
+  /// Safety warning text
+  TextColumn get safetyWarning => text().nullable()();
+
+  /// Tips text
+  TextColumn get tips => text().nullable()();
+
+  /// Display order
+  IntColumn get orderIndex => integer()();
+
+  @override
+  Set<Column> get primaryKey => {sosRoutineId};
+}
+
+/// SOS Exercises table - stores individual exercises for SOS routines
+@DataClassName('SosExercise')
+class SosExercises extends Table {
+  IntColumn get sosExerciseId => integer().autoIncrement()();
+
+  IntColumn get sosRoutineId => integer().references(SosRoutines, #sosRoutineId, onDelete: KeyAction.cascade)();
+
+  TextColumn get exerciseName => text()();
+  TextColumn get description => text()();
+
+  /// Path to Lottie animation JSON file
+  TextColumn get animationPath => text()();
+
+  /// Duration in seconds
+  IntColumn get durationSeconds => integer()();
+
+  /// Audio guidance text
+  TextColumn get audioGuidance => text()();
+
+  /// Order of exercise in the routine
+  IntColumn get orderIndex => integer()();
+
+  @override
+  Set<Column> get primaryKey => {sosExerciseId};
+}
+
+/// SOS Session Records table - tracks completed SOS routine sessions
+@DataClassName('SosSessionRecord')
+class SosSessionRecords extends Table {
+  IntColumn get sosSessionId => integer().autoIncrement()();
+
+  IntColumn get userId => integer().references(Users, #userId, onDelete: KeyAction.cascade)();
+
+  IntColumn get sosRoutineId => integer().references(SosRoutines, #sosRoutineId, onDelete: KeyAction.cascade)();
+
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime()();
+
+  /// Whether the session was fully completed
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(true))();
+
+  @override
+  Set<Column> get primaryKey => {sosSessionId};
+}
+
 // ============================================================================
 // DATABASE CONFIGURATION
 // ============================================================================
@@ -206,6 +285,9 @@ class WorkoutSessions extends Table {
     ProgressRecords,
     KegelSessions,
     WorkoutSessions,
+    SosRoutines,
+    SosExercises,
+    SosSessionRecords,
   ],
   daos: [
     UserDao,
@@ -215,6 +297,7 @@ class WorkoutSessions extends Table {
     ProgressDao,
     KegelSessionDao,
     WorkoutSessionDao,
+    SosRoutineDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -228,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -261,6 +344,15 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
         );
+        await customStatement(
+          'CREATE INDEX idx_sos_exercises_routine ON sos_exercises(sos_routine_id, order_index);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_sos_sessions_user ON sos_session_records(user_id, started_at);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_sos_sessions_routine ON sos_session_records(sos_routine_id, completed_at);',
+        );
       },
       onUpgrade: (Migrator m, int from, int to) async {
         // Migrate from version 1 to 2
@@ -274,6 +366,25 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
+          );
+        }
+
+        // Migrate from version 2 to 3
+        if (from < 3) {
+          // Add SOS tables
+          await m.createTable(sosRoutines);
+          await m.createTable(sosExercises);
+          await m.createTable(sosSessionRecords);
+
+          // Create indexes for SOS tables
+          await customStatement(
+            'CREATE INDEX idx_sos_exercises_routine ON sos_exercises(sos_routine_id, order_index);',
+          );
+          await customStatement(
+            'CREATE INDEX idx_sos_sessions_user ON sos_session_records(user_id, started_at);',
+          );
+          await customStatement(
+            'CREATE INDEX idx_sos_sessions_routine ON sos_session_records(sos_routine_id, completed_at);',
           );
         }
       },
