@@ -6,14 +6,16 @@ import '../ui/screens/onboarding/delivery_type_screen.dart';
 import '../ui/screens/onboarding/weeks_postpartum_screen.dart';
 import '../ui/screens/onboarding/symptom_assessment_screen.dart';
 
+// Workout screens
+import '../ui/screens/workout/workout_detail_screen.dart';
+import '../ui/screens/workout/exercise_screen.dart';
+import '../ui/screens/workout/workout_complete_screen.dart';
+
 // TODO: Import other screens once they are implemented
 // import 'package:postpartum_recovery_app/ui/screens/splash_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/home_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/level_selection_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/workout_list_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/workout/workout_detail_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/workout/exercise_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/workout/workout_complete_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/workout/kegel_trainer_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/progress/progress_dashboard_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/progress/diastasis_recti_screen.dart';
@@ -48,8 +50,8 @@ class AppRouter {
   static const String workoutList = '/home/workout-list';
 
   // Workout routes
-  static const String workoutDetail = '/workout/detail';
-  static const String exercise = '/workout/exercise';
+  static const String workoutDetail = '/workout/detail/:id';
+  static const String exercise = '/workout/exercise/:id';
   static const String workoutComplete = '/workout/complete';
   static const String kegelTrainer = '/workout/kegel-trainer';
 
@@ -163,29 +165,37 @@ class AppRouter {
       GoRoute(
         path: workoutDetail,
         name: 'workoutDetail',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Workout Detail Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) {
+          final workoutId = int.tryParse(state.pathParameters['id'] ?? '');
+          if (workoutId == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text('Invalid workout ID'),
+              ),
+            );
+          }
+          return WorkoutDetailScreen(workoutId: workoutId);
+        },
       ),
       GoRoute(
         path: exercise,
         name: 'exercise',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Exercise Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) {
+          final workoutId = int.tryParse(state.pathParameters['id'] ?? '');
+          if (workoutId == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text('Invalid workout ID'),
+              ),
+            );
+          }
+          return ExerciseScreen(workoutId: workoutId);
+        },
       ),
       GoRoute(
         path: workoutComplete,
         name: 'workoutComplete',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Workout Complete Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const WorkoutCompleteScreen(),
       ),
       GoRoute(
         path: kegelTrainer,
