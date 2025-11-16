@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-// TODO: Import screens once they are implemented
+// Onboarding screens
+import '../ui/screens/onboarding/delivery_type_screen.dart';
+import '../ui/screens/onboarding/weeks_postpartum_screen.dart';
+import '../ui/screens/onboarding/symptom_assessment_screen.dart';
+
+// TODO: Import other screens once they are implemented
 // import 'package:postpartum_recovery_app/ui/screens/splash_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/onboarding/delivery_type_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/onboarding/weeks_postpartum_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/onboarding/symptom_assessment_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/home_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/level_selection_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/workout_list_screen.dart';
@@ -115,29 +117,17 @@ class AppRouter {
       GoRoute(
         path: onboardingDeliveryType,
         name: 'onboardingDeliveryType',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Delivery Type Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const DeliveryTypeScreen(),
       ),
       GoRoute(
         path: onboardingWeeksPostpartum,
         name: 'onboardingWeeksPostpartum',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Weeks Postpartum Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const WeeksPostpartumScreen(),
       ),
       GoRoute(
         path: onboardingSymptomAssessment,
         name: 'onboardingSymptomAssessment',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Symptom Assessment Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const SymptomAssessmentScreen(),
       ),
 
       // Home Routes
