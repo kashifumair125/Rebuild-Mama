@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:postpartum_recovery_app/config/app_config.dart';
 import 'package:postpartum_recovery_app/config/routes.dart';
 import 'package:postpartum_recovery_app/config/theme.dart';
+import 'package:postpartum_recovery_app/providers/preferences_provider.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,16 +14,13 @@ void main() async {
   // Initialize app configuration (default: dev environment)
   await AppConfig.initialize(Environment.dev);
 
-  // TODO: Initialize Firebase
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  // TODO: Initialize Hive for local storage
-  // await Hive.initFlutter();
-
-  // TODO: Initialize notifications
-  // await AwesomeNotifications().initialize(...);
+  // Initialize timezone database for notifications
+  tz.initializeTimeZones();
 
   runApp(
     const ProviderScope(
@@ -28,11 +29,14 @@ void main() async {
   );
 }
 
-class PostpartumRecoveryApp extends StatelessWidget {
+class PostpartumRecoveryApp extends ConsumerWidget {
   const PostpartumRecoveryApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch dark mode preference
+    final isDarkMode = ref.watch(isDarkModeEnabledProvider);
+
     return MaterialApp.router(
       // App title
       title: AppConfig.instance.appName,
@@ -43,7 +47,7 @@ class PostpartumRecoveryApp extends StatelessWidget {
       // Theme configuration
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system, // TODO: Make this dynamic based on user preference
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
 
       // Routing
       routerConfig: AppRouter.router,
