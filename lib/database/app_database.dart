@@ -4,58 +4,191 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
+import 'converters/json_converter.dart';
+import 'daos/user_dao.dart';
+import 'daos/assessment_dao.dart';
+import 'daos/workout_dao.dart';
+import 'daos/exercise_dao.dart';
+import 'daos/progress_dao.dart';
+import 'daos/kegel_session_dao.dart';
+
 part 'app_database.g.dart';
 
-// User table for storing user profile data
+// ============================================================================
+// TABLE DEFINITIONS
+// ============================================================================
+
+/// Users table - stores user profile and authentication data
+@DataClassName('User')
 class Users extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get firebaseUid => text().unique()();
-  TextColumn get email => text()();
-  TextColumn get name => text().nullable()();
-  IntColumn get currentLevel => integer().withDefault(const Constant(0))();
+  IntColumn get userId => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get email => text().unique()();
+  TextColumn get passwordHash => text()();
+
+  /// Delivery type: 'vaginal' or 'c_section'
+  TextColumn get deliveryType => text()();
+
+  /// Number of weeks postpartum
+  IntColumn get weeksPostpartum => integer()();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {userId};
 }
 
-// Workout sessions table
-class WorkoutSessions extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get userId => text()();
+/// Assessments table - stores pelvic floor and diastasis recti assessments
+@DataClassName('Assessment')
+class Assessments extends Table {
+  IntColumn get assessmentId => integer().autoIncrement()();
+
+  IntColumn get userId => integer().references(Users, #userId, onDelete: KeyAction.cascade)();
+
+  /// Assessment type: 'pelvic_floor' or 'diastasis_recti'
+  TextColumn get type => text()();
+
+  /// Questions in JSON format
+  TextColumn get questions => text().map(const JsonMapConverter())();
+
+  /// Answers in JSON format
+  TextColumn get answers => text().map(const JsonMapConverter())();
+
+  /// Classification: 'weak', 'moderate', or 'strong'
+  TextColumn get classification => text()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {assessmentId};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [];
+}
+
+/// Workouts table - stores workout programs
+@DataClassName('Workout')
+class Workouts extends Table {
+  IntColumn get workoutId => integer().autoIncrement()();
+
+  IntColumn get userId => integer().references(Users, #userId, onDelete: KeyAction.cascade)();
+
+  /// Workout level: 1, 2, or 3
   IntColumn get level => integer()();
-  IntColumn get duration => integer()(); // in seconds
-  BoolColumn get completed => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get startedAt => dateTime()();
+
+  TextColumn get name => text()();
+  TextColumn get description => text()();
+
+  /// Duration in minutes
+  IntColumn get durationMinutes => integer()();
+
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get completedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {workoutId};
 }
 
-// Progress tracking table
+/// Exercises table - stores individual exercises for workouts
+@DataClassName('Exercise')
+class Exercises extends Table {
+  IntColumn get exerciseId => integer().autoIncrement()();
+
+  IntColumn get workoutId => integer().references(Workouts, #workoutId, onDelete: KeyAction.cascade)();
+
+  TextColumn get exerciseName => text()();
+  TextColumn get description => text()();
+
+  /// Path to Lottie animation JSON file
+  TextColumn get animationPath => text()();
+
+  /// Sets and reps in format like "3x10" or "3x15"
+  TextColumn get setsReps => text()();
+
+  /// Duration in seconds (for timed exercises)
+  IntColumn get durationSeconds => integer().nullable()();
+
+  /// Order of exercise in the workout
+  IntColumn get orderIndex => integer()();
+
+  @override
+  Set<Column> get primaryKey => {exerciseId};
+}
+
+/// Progress table - stores user progress tracking data
+@DataClassName('Progress')
 class ProgressRecords extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get userId => text()();
-  TextColumn get type => text()(); // 'diastasis' or 'pelvic_floor'
-  RealColumn get value => real()();
-  TextColumn get notes => text().nullable()();
+  IntColumn get progressId => integer().autoIncrement()();
+
+  IntColumn get userId => integer().references(Users, #userId, onDelete: KeyAction.cascade)();
+
+  /// Progress type: 'diastasis', 'pelvic_floor', 'weight', or 'photo'
+  TextColumn get type => text()();
+
+  /// Value can be numeric or JSON for complex data (e.g., photo paths)
+  TextColumn get value => text().map(const NullableJsonMapConverter()).nullable()();
+
   DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// Week number since starting the program
+  IntColumn get weekNumber => integer()();
+
+  @override
+  Set<Column> get primaryKey => {progressId};
 }
 
-// Exercise completion tracking
-class ExerciseCompletions extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get userId => text()();
-  TextColumn get exerciseId => text()();
-  IntColumn get repetitions => integer()();
-  IntColumn get duration => integer()(); // in seconds
-  DateTimeColumn get completedAt => dateTime().withDefault(currentDateAndTime)();
+/// Kegel Sessions table - stores kegel exercise tracking data
+@DataClassName('KegelSession')
+class KegelSessions extends Table {
+  IntColumn get sessionId => integer().autoIncrement()();
+
+  IntColumn get userId => integer().references(Users, #userId, onDelete: KeyAction.cascade)();
+
+  /// Duration in minutes
+  IntColumn get durationMinutes => integer()();
+
+  /// Number of reps completed
+  IntColumn get repsCompleted => integer()();
+
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get endedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {sessionId};
 }
 
-@DriftDatabase(tables: [
-  Users,
-  WorkoutSessions,
-  ProgressRecords,
-  ExerciseCompletions,
-])
+// ============================================================================
+// DATABASE CONFIGURATION
+// ============================================================================
+
+@DriftDatabase(
+  tables: [
+    Users,
+    Assessments,
+    Workouts,
+    Exercises,
+    ProgressRecords,
+    KegelSessions,
+  ],
+  daos: [
+    UserDao,
+    AssessmentDao,
+    WorkoutDao,
+    ExerciseDao,
+    ProgressDao,
+    KegelSessionDao,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  // Private constructor for singleton pattern
+  AppDatabase._internal() : super(_openConnection());
+
+  // Singleton instance
+  static final AppDatabase _instance = AppDatabase._internal();
+
+  // Factory constructor to return singleton instance
+  factory AppDatabase() => _instance;
 
   @override
   int get schemaVersion => 1;
@@ -65,88 +198,61 @@ class AppDatabase extends _$AppDatabase {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+
+        // Create indexes for performance
+        await customStatement(
+          'CREATE INDEX idx_assessments_user_type ON assessments(user_id, type);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_workouts_user_level ON workouts(user_id, level);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_exercises_workout ON exercises(workout_id, order_index);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_progress_user_type ON progress_records(user_id, type);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_progress_week ON progress_records(user_id, week_number);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_kegel_user ON kegel_sessions(user_id, started_at);',
+        );
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Add migration logic here when schema changes
+        // Future migrations will go here
+        // Example:
+        // if (from < 2) {
+        //   await m.addColumn(users, users.newColumn);
+        // }
+      },
+      beforeOpen: (details) async {
+        // Enable foreign key constraints
+        await customStatement('PRAGMA foreign_keys = ON;');
       },
     );
   }
 
-  // User queries
-  Future<User?> getUserByFirebaseUid(String firebaseUid) {
-    return (select(users)..where((u) => u.firebaseUid.equals(firebaseUid)))
-        .getSingleOrNull();
+  /// Close the database connection
+  Future<void> closeDatabase() async {
+    await close();
   }
 
-  Future<int> insertUser(UsersCompanion user) {
-    return into(users).insert(user);
-  }
-
-  Future<bool> updateUser(User user) {
-    return update(users).replace(user);
-  }
-
-  // Workout queries
-  Stream<List<WorkoutSession>> watchUserWorkouts(String userId) {
-    return (select(workoutSessions)
-          ..where((w) => w.userId.equals(userId))
-          ..orderBy([(w) => OrderingTerm.desc(w.startedAt)]))
-        .watch();
-  }
-
-  Future<int> insertWorkoutSession(WorkoutSessionsCompanion session) {
-    return into(workoutSessions).insert(session);
-  }
-
-  Future<bool> updateWorkoutSession(WorkoutSession session) {
-    return update(workoutSessions).replace(session);
-  }
-
-  // Progress queries
-  Stream<List<ProgressRecord>> watchUserProgress(String userId, String type) {
-    return (select(progressRecords)
-          ..where((p) => p.userId.equals(userId) & p.type.equals(type))
-          ..orderBy([(p) => OrderingTerm.desc(p.recordedAt)]))
-        .watch();
-  }
-
-  Future<List<ProgressRecord>> getUserProgressByDateRange({
-    required String userId,
-    required String type,
-    required DateTime startDate,
-    required DateTime endDate,
-  }) {
-    return (select(progressRecords)
-          ..where((p) =>
-              p.userId.equals(userId) &
-              p.type.equals(type) &
-              p.recordedAt.isBiggerOrEqualValue(startDate) &
-              p.recordedAt.isSmallerOrEqualValue(endDate))
-          ..orderBy([(p) => OrderingTerm.asc(p.recordedAt)]))
-        .get();
-  }
-
-  Future<int> insertProgressRecord(ProgressRecordsCompanion record) {
-    return into(progressRecords).insert(record);
-  }
-
-  // Exercise completion queries
-  Future<int> insertExerciseCompletion(ExerciseCompletionsCompanion completion) {
-    return into(exerciseCompletions).insert(completion);
-  }
-
-  Stream<List<ExerciseCompletion>> watchUserExerciseCompletions(String userId) {
-    return (select(exerciseCompletions)
-          ..where((e) => e.userId.equals(userId))
-          ..orderBy([(e) => OrderingTerm.desc(e.completedAt)]))
-        .watch();
+  /// Delete the database file (useful for testing or reset)
+  static Future<void> deleteDatabase() async {
+    final dbFolder = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dbFolder.path, 'postpartum_recovery.sqlite'));
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 }
 
+/// Opens a connection to the database
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'postpartum_app.sqlite'));
+    final file = File(p.join(dbFolder.path, 'postpartum_recovery.sqlite'));
     return NativeDatabase(file);
   });
 }
