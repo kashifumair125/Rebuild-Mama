@@ -11,6 +11,14 @@ import '../ui/screens/workout/workout_detail_screen.dart';
 import '../ui/screens/workout/exercise_screen.dart';
 import '../ui/screens/workout/workout_complete_screen.dart';
 
+// Progress screens
+import '../ui/screens/progress/pelvic_floor_screen.dart';
+import '../ui/screens/progress/diastasis_recti_screen.dart';
+
+// Assessment screens
+import '../ui/screens/home/pelvic_floor_assessment_screen.dart';
+import '../ui/screens/home/pelvic_floor_checkin_screen.dart';
+
 // TODO: Import other screens once they are implemented
 // import 'package:postpartum_recovery_app/ui/screens/splash_screen.dart';
 // import 'package:postpartum_recovery_app/ui/screens/home/home_screen.dart';
@@ -60,6 +68,10 @@ class AppRouter {
   static const String diastasisRecti = '/progress/diastasis-recti';
   static const String pelvicFloor = '/progress/pelvic-floor';
   static const String photoProgress = '/progress/photo';
+
+  // Assessment routes
+  static const String pelvicFloorAssessment = '/pelvic-floor-assessment';
+  static const String pelvicFloorCheckin = '/pelvic-floor-checkin';
 
   // SOS routes
   static const String sosHome = '/sos';
@@ -220,20 +232,12 @@ class AppRouter {
       GoRoute(
         path: diastasisRecti,
         name: 'diastasisRecti',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Diastasis Recti Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const DiastasisRectiScreen(),
       ),
       GoRoute(
         path: pelvicFloor,
         name: 'pelvicFloor',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Pelvic Floor Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const PelvicFloorScreen(),
       ),
       GoRoute(
         path: photoProgress,
@@ -243,6 +247,18 @@ class AppRouter {
             child: Text('Photo Progress Screen - TODO: Implement'),
           ),
         ),
+      ),
+
+      // Assessment Routes
+      GoRoute(
+        path: pelvicFloorAssessment,
+        name: 'pelvicFloorAssessment',
+        builder: (context, state) => const PelvicFloorAssessmentScreen(),
+      ),
+      GoRoute(
+        path: pelvicFloorCheckin,
+        name: 'pelvicFloorCheckin',
+        builder: (context, state) => const PelvicFloorCheckinScreen(),
       ),
 
       // SOS Routes
