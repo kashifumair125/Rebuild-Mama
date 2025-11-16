@@ -11,6 +11,7 @@ import 'daos/workout_dao.dart';
 import 'daos/exercise_dao.dart';
 import 'daos/progress_dao.dart';
 import 'daos/kegel_session_dao.dart';
+import 'daos/workout_session_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -158,6 +159,40 @@ class KegelSessions extends Table {
   Set<Column> get primaryKey => {sessionId};
 }
 
+/// Workout Sessions table - stores individual workout session tracking
+@DataClassName('WorkoutSession')
+class WorkoutSessions extends Table {
+  IntColumn get workoutSessionId => integer().autoIncrement()();
+
+  IntColumn get userId => integer().references(Users, #userId, onDelete: KeyAction.cascade)();
+
+  IntColumn get workoutId => integer().references(Workouts, #workoutId, onDelete: KeyAction.cascade)();
+
+  /// Workout level at time of session
+  IntColumn get level => integer()();
+
+  /// Number of exercises completed in this session
+  IntColumn get exercisesCompleted => integer()();
+
+  /// Total exercises in the workout
+  IntColumn get totalExercises => integer()();
+
+  /// Estimated calories burned
+  IntColumn get caloriesBurned => integer().nullable()();
+
+  /// Duration in minutes
+  IntColumn get durationMinutes => integer()();
+
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
+  /// Whether the session was fully completed
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {workoutSessionId};
+}
+
 // ============================================================================
 // DATABASE CONFIGURATION
 // ============================================================================
@@ -170,6 +205,7 @@ class KegelSessions extends Table {
     Exercises,
     ProgressRecords,
     KegelSessions,
+    WorkoutSessions,
   ],
   daos: [
     UserDao,
@@ -178,6 +214,7 @@ class KegelSessions extends Table {
     ExerciseDao,
     ProgressDao,
     KegelSessionDao,
+    WorkoutSessionDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -191,7 +228,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => _instance;
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -218,13 +255,27 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX idx_kegel_user ON kegel_sessions(user_id, started_at);',
         );
+        await customStatement(
+          'CREATE INDEX idx_workout_sessions_user ON workout_sessions(user_id, started_at);',
+        );
+        await customStatement(
+          'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
+        );
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Future migrations will go here
-        // Example:
-        // if (from < 2) {
-        //   await m.addColumn(users, users.newColumn);
-        // }
+        // Migrate from version 1 to 2
+        if (from < 2) {
+          // Add WorkoutSessions table
+          await m.createTable(workoutSessions);
+
+          // Create indexes for workout sessions
+          await customStatement(
+            'CREATE INDEX idx_workout_sessions_user ON workout_sessions(user_id, started_at);',
+          );
+          await customStatement(
+            'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
+          );
+        }
       },
       beforeOpen: (details) async {
         // Enable foreign key constraints

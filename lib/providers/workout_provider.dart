@@ -1,319 +1,316 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../database/app_database.dart';
-import 'auth_provider.dart';
 import 'database_provider.dart';
 
 part 'workout_provider.g.dart';
 
-/// Workout model for current workout state
-class CurrentWorkout {
+/// Model for the current workout session state
+class WorkoutSessionState {
+  final int workoutId;
+  final int workoutSessionId;
   final int level;
-  final DateTime startedAt;
-  final List<String> exerciseIds;
+  final List<Exercise> exercises;
   final int currentExerciseIndex;
+  final DateTime startedAt;
 
-  const CurrentWorkout({
+  const WorkoutSessionState({
+    required this.workoutId,
+    required this.workoutSessionId,
     required this.level,
-    required this.startedAt,
-    required this.exerciseIds,
+    required this.exercises,
     this.currentExerciseIndex = 0,
+    required this.startedAt,
   });
 
-  CurrentWorkout copyWith({
+  Exercise get currentExercise => exercises[currentExerciseIndex];
+
+  bool get isLastExercise => currentExerciseIndex == exercises.length - 1;
+
+  bool get isFirstExercise => currentExerciseIndex == 0;
+
+  int get totalExercises => exercises.length;
+
+  int get exercisesCompleted => currentExerciseIndex + 1;
+
+  WorkoutSessionState copyWith({
+    int? workoutId,
+    int? workoutSessionId,
     int? level,
-    DateTime? startedAt,
-    List<String>? exerciseIds,
+    List<Exercise>? exercises,
     int? currentExerciseIndex,
+    DateTime? startedAt,
   }) {
-    return CurrentWorkout(
+    return WorkoutSessionState(
+      workoutId: workoutId ?? this.workoutId,
+      workoutSessionId: workoutSessionId ?? this.workoutSessionId,
       level: level ?? this.level,
-      startedAt: startedAt ?? this.startedAt,
-      exerciseIds: exerciseIds ?? this.exerciseIds,
+      exercises: exercises ?? this.exercises,
       currentExerciseIndex: currentExerciseIndex ?? this.currentExerciseIndex,
+      startedAt: startedAt ?? this.startedAt,
     );
   }
 }
 
-/// Stream provider for user's current workout level (0-3)
-/// Watches the database for changes
-@riverpod
-Stream<int> userCurrentLevel(UserCurrentLevelRef ref) async* {
-  final userId = ref.watch(userIdProvider);
-
-  if (userId == null) {
-    yield 0;
-    return;
-  }
-
-  final db = ref.watch(appDatabaseProvider);
-  final user = await db.getUserByFirebaseUid(userId);
-
-  if (user == null) {
-    yield 0;
-    return;
-  }
-
-  yield user.currentLevel;
-
-  // Watch for changes
-  await for (final _ in Stream.periodic(const Duration(seconds: 1))) {
-    final updatedUser = await db.getUserByFirebaseUid(userId);
-    if (updatedUser != null) {
-      yield updatedUser.currentLevel;
-    }
-  }
-}
-
-/// State provider for current workout session
+/// State notifier for managing the current workout session
 @riverpod
 class CurrentWorkoutSession extends _$CurrentWorkoutSession {
   @override
-  CurrentWorkout? build() {
+  WorkoutSessionState? build() {
     return null;
   }
 
   /// Start a new workout session
-  void startWorkout({
+  Future<void> startWorkout({
+    required int userId,
+    required int workoutId,
     required int level,
-    required List<String> exerciseIds,
-  }) {
-    state = CurrentWorkout(
-      level: level,
-      startedAt: DateTime.now(),
-      exerciseIds: exerciseIds,
-      currentExerciseIndex: 0,
-    );
-  }
-
-  /// Move to next exercise
-  void nextExercise() {
-    if (state == null) return;
-
-    final newIndex = state!.currentExerciseIndex + 1;
-    if (newIndex < state!.exerciseIds.length) {
-      state = state!.copyWith(currentExerciseIndex: newIndex);
-    }
-  }
-
-  /// Move to previous exercise
-  void previousExercise() {
-    if (state == null) return;
-
-    final newIndex = state!.currentExerciseIndex - 1;
-    if (newIndex >= 0) {
-      state = state!.copyWith(currentExerciseIndex: newIndex);
-    }
-  }
-
-  /// Complete the current workout
-  Future<void> completeWorkout() async {
-    if (state == null) return;
-
-    final userId = ref.read(userIdProvider);
-    if (userId == null) return;
-
+  }) async {
     final db = ref.read(appDatabaseProvider);
-    final duration = DateTime.now().difference(state!.startedAt).inSeconds;
 
-    // Save workout session to database
-    await db.insertWorkoutSession(
+    // Get exercises for this workout
+    final exercises = await db.exerciseDao.getExercisesByWorkoutId(workoutId);
+
+    if (exercises.isEmpty) {
+      throw Exception('No exercises found for this workout');
+    }
+
+    // Create a workout session in the database
+    final sessionId = await db.workoutSessionDao.insertWorkoutSession(
       WorkoutSessionsCompanion(
         userId: drift.Value(userId),
-        level: drift.Value(state!.level),
-        duration: drift.Value(duration),
-        completed: const drift.Value(true),
-        startedAt: drift.Value(state!.startedAt),
-        completedAt: drift.Value(DateTime.now()),
+        workoutId: drift.Value(workoutId),
+        level: drift.Value(level),
+        exercisesCompleted: const drift.Value(0),
+        totalExercises: drift.Value(exercises.length),
+        durationMinutes: const drift.Value(0),
+        startedAt: drift.Value(DateTime.now()),
+        isCompleted: const drift.Value(false),
       ),
     );
 
-    // Clear current workout
+    state = WorkoutSessionState(
+      workoutId: workoutId,
+      workoutSessionId: sessionId,
+      level: level,
+      exercises: exercises,
+      currentExerciseIndex: 0,
+      startedAt: DateTime.now(),
+    );
+  }
+
+  /// Move to the next exercise
+  Future<void> nextExercise() async {
+    if (state == null || state!.isLastExercise) return;
+
+    final newIndex = state!.currentExerciseIndex + 1;
+    state = state!.copyWith(currentExerciseIndex: newIndex);
+
+    // Update exercises completed in database
+    final db = ref.read(appDatabaseProvider);
+    await db.workoutSessionDao.updateExercisesCompleted(
+      state!.workoutSessionId,
+      newIndex + 1,
+    );
+  }
+
+  /// Move to the previous exercise
+  void previousExercise() {
+    if (state == null || state!.isFirstExercise) return;
+
+    final newIndex = state!.currentExerciseIndex - 1;
+    state = state!.copyWith(currentExerciseIndex: newIndex);
+  }
+
+  /// Skip to a specific exercise
+  void skipToExercise(int index) {
+    if (state == null || index < 0 || index >= state!.totalExercises) return;
+    state = state!.copyWith(currentExerciseIndex: index);
+  }
+
+  /// Complete the current workout session
+  Future<void> completeWorkout({int? caloriesBurned}) async {
+    if (state == null) return;
+
+    final db = ref.read(appDatabaseProvider);
+    final duration = DateTime.now().difference(state!.startedAt).inMinutes;
+
+    // Mark workout session as completed
+    await db.workoutSessionDao.markWorkoutSessionAsCompleted(
+      state!.workoutSessionId,
+      caloriesBurned: caloriesBurned,
+    );
+
+    // Update the workout session duration
+    final session = await db.workoutSessionDao.getWorkoutSessionById(
+      state!.workoutSessionId,
+    );
+
+    if (session != null) {
+      await db.workoutSessionDao.updateWorkoutSession(
+        session.copyWith(
+          durationMinutes: duration > 0 ? duration : 1,
+          exercisesCompleted: state!.totalExercises,
+        ),
+      );
+    }
+
+    // Mark the workout as completed if not already
+    await db.workoutDao.markWorkoutAsCompleted(state!.workoutId);
+
+    // Clear the current workout state
     state = null;
   }
 
-  /// Cancel the current workout
+  /// Cancel the current workout session
   void cancelWorkout() {
     state = null;
   }
+
+  /// Get current exercise progress (0.0 to 1.0)
+  double get progress {
+    if (state == null) return 0.0;
+    return (state!.currentExerciseIndex + 1) / state!.totalExercises;
+  }
 }
 
-/// Stream provider for user's workout progress
-/// Returns list of completed workout sessions
+/// Provider to get all workouts for a specific level
 @riverpod
-Stream<List<WorkoutSession>> workoutProgress(WorkoutProgressRef ref) async* {
-  final userId = ref.watch(userIdProvider);
-
-  if (userId == null) {
-    yield [];
-    return;
-  }
-
+Future<List<Workout>> workoutsByLevel(
+  WorkoutsByLevelRef ref,
+  int userId,
+  int level,
+) async {
   final db = ref.watch(appDatabaseProvider);
-  yield* db.watchUserWorkouts(userId);
+  return await db.workoutDao.getWorkoutsByLevel(userId, level);
 }
 
-/// Provider to get workout statistics
+/// Provider to watch workouts for a specific level (reactive)
 @riverpod
-Future<WorkoutStats> workoutStats(WorkoutStatsRef ref) async {
-  final userId = ref.watch(userIdProvider);
-
-  if (userId == null) {
-    return const WorkoutStats(
-      totalWorkouts: 0,
-      totalDuration: 0,
-      currentStreak: 0,
-      longestStreak: 0,
-    );
-  }
-
-  final db = ref.read(appDatabaseProvider);
-  final workouts = await db.watchUserWorkouts(userId).first;
-
-  final completedWorkouts = workouts.where((w) => w.completed).toList();
-  final totalWorkouts = completedWorkouts.length;
-  final totalDuration = completedWorkouts.fold<int>(
-    0,
-    (sum, workout) => sum + workout.duration,
-  );
-
-  // Calculate streaks
-  final streaks = _calculateStreaks(completedWorkouts);
-
-  return WorkoutStats(
-    totalWorkouts: totalWorkouts,
-    totalDuration: totalDuration,
-    currentStreak: streaks.currentStreak,
-    longestStreak: streaks.longestStreak,
-  );
+Stream<List<Workout>> watchWorkoutsByLevel(
+  WatchWorkoutsByLevelRef ref,
+  int userId,
+  int level,
+) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.workoutDao.watchWorkoutsByLevel(userId, level);
 }
 
-/// Workout statistics model
-class WorkoutStats {
-  final int totalWorkouts;
-  final int totalDuration; // in seconds
-  final int currentStreak; // in days
-  final int longestStreak; // in days
-
-  const WorkoutStats({
-    required this.totalWorkouts,
-    required this.totalDuration,
-    required this.currentStreak,
-    required this.longestStreak,
-  });
-}
-
-/// Helper class for streak calculation
-class _StreakResult {
-  final int currentStreak;
-  final int longestStreak;
-
-  const _StreakResult({
-    required this.currentStreak,
-    required this.longestStreak,
-  });
-}
-
-/// Calculate workout streaks
-_StreakResult _calculateStreaks(List<WorkoutSession> workouts) {
-  if (workouts.isEmpty) {
-    return const _StreakResult(currentStreak: 0, longestStreak: 0);
-  }
-
-  // Sort by date (most recent first)
-  final sortedWorkouts = workouts.toList()
-    ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
-
-  int currentStreak = 0;
-  int longestStreak = 0;
-  int tempStreak = 0;
-
-  DateTime? lastDate;
-
-  for (final workout in sortedWorkouts) {
-    final workoutDate = DateTime(
-      workout.startedAt.year,
-      workout.startedAt.month,
-      workout.startedAt.day,
-    );
-
-    if (lastDate == null) {
-      tempStreak = 1;
-      lastDate = workoutDate;
-      continue;
-    }
-
-    final daysDifference = lastDate.difference(workoutDate).inDays;
-
-    if (daysDifference == 1) {
-      tempStreak++;
-    } else if (daysDifference > 1) {
-      longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
-      tempStreak = 1;
-    }
-
-    lastDate = workoutDate;
-  }
-
-  longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
-
-  // Check if current streak is still active
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final mostRecentWorkout = DateTime(
-    sortedWorkouts.first.startedAt.year,
-    sortedWorkouts.first.startedAt.month,
-    sortedWorkouts.first.startedAt.day,
-  );
-
-  final daysSinceLastWorkout = today.difference(mostRecentWorkout).inDays;
-  currentStreak = daysSinceLastWorkout <= 1 ? tempStreak : 0;
-
-  return _StreakResult(
-    currentStreak: currentStreak,
-    longestStreak: longestStreak,
-  );
-}
-
-/// Provider to update user level
+/// Provider to get workout by ID
 @riverpod
-class UserLevel extends _$UserLevel {
-  @override
-  FutureOr<void> build() {
-    // No initial state needed
-  }
+Future<Workout?> workoutById(WorkoutByIdRef ref, int workoutId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutDao.getWorkoutById(workoutId);
+}
 
-  /// Update user's workout level
-  Future<void> updateLevel(int newLevel) async {
-    if (newLevel < 0 || newLevel > 3) {
-      throw ArgumentError('Level must be between 0 and 3');
-    }
+/// Provider to watch a specific workout (reactive)
+@riverpod
+Stream<Workout?> watchWorkout(WatchWorkoutRef ref, int workoutId) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.workoutDao.watchWorkoutById(workoutId);
+}
 
-    state = const AsyncValue.loading();
+/// Provider to get exercises for a workout
+@riverpod
+Future<List<Exercise>> exercisesForWorkout(
+  ExercisesForWorkoutRef ref,
+  int workoutId,
+) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.exerciseDao.getExercisesByWorkoutId(workoutId);
+}
 
-    try {
-      final userId = ref.read(userIdProvider);
-      if (userId == null) {
-        throw Exception('User not logged in');
-      }
+/// Provider to watch exercises for a workout (reactive)
+@riverpod
+Stream<List<Exercise>> watchExercisesForWorkout(
+  WatchExercisesForWorkoutRef ref,
+  int workoutId,
+) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.exerciseDao.watchExercisesByWorkoutId(workoutId);
+}
 
-      final db = ref.read(appDatabaseProvider);
-      final user = await db.getUserByFirebaseUid(userId);
+/// Provider to get workout session statistics
+@riverpod
+Future<Map<String, dynamic>> workoutSessionStats(
+  WorkoutSessionStatsRef ref,
+  int userId,
+) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutSessionDao.getWorkoutSessionStatistics(userId);
+}
 
-      if (user == null) {
-        throw Exception('User not found in database');
-      }
+/// Provider to watch workout sessions for a user (reactive)
+@riverpod
+Stream<List<WorkoutSession>> watchWorkoutSessions(
+  WatchWorkoutSessionsRef ref,
+  int userId,
+) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.workoutSessionDao.watchWorkoutSessionsByUserId(userId);
+}
 
-      await db.updateUser(
-        user.copyWith(
-          currentLevel: newLevel,
-          updatedAt: DateTime.now(),
-        ),
-      );
+/// Provider to get workout streak
+@riverpod
+Future<int> workoutStreak(WorkoutStreakRef ref, int userId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutSessionDao.calculateWorkoutStreak(userId);
+}
 
-      state = const AsyncValue.data(null);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
+/// Provider to get longest workout streak
+@riverpod
+Future<int> longestWorkoutStreak(LongestWorkoutStreakRef ref, int userId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutSessionDao.getLongestStreak(userId);
+}
+
+/// Provider to check if user worked out today
+@riverpod
+Future<bool> workedOutToday(WorkedOutTodayRef ref, int userId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutSessionDao.hasWorkedOutToday(userId);
+}
+
+/// Provider to get recent workout sessions
+@riverpod
+Future<List<WorkoutSession>> recentWorkoutSessions(
+  RecentWorkoutSessionsRef ref,
+  int userId, {
+  int limit = 10,
+}) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutSessionDao.getRecentWorkoutSessions(userId, limit: limit);
+}
+
+/// Provider to get completed workouts count
+@riverpod
+Future<int> completedWorkoutsCount(
+  CompletedWorkoutsCountRef ref,
+  int userId,
+  int level,
+) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutDao.getWorkoutCount(userId, level: level, completed: true);
+}
+
+/// Provider to get total workouts count
+@riverpod
+Future<int> totalWorkoutsCount(
+  TotalWorkoutsCountRef ref,
+  int userId,
+  int level,
+) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutDao.getWorkoutCount(userId, level: level);
+}
+
+/// Provider to get level completion percentage
+@riverpod
+Future<double> levelCompletionPercentage(
+  LevelCompletionPercentageRef ref,
+  int userId,
+  int level,
+) async {
+  final db = ref.watch(appDatabaseProvider);
+  return await db.workoutDao.getLevelCompletionPercentage(userId, level);
 }
