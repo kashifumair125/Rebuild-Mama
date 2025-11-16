@@ -1,9 +1,24 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../database/app_database.dart';
 
-// TODO: Implement database provider
-// Provides access to the Drift database instance
+part 'database_provider.g.dart';
 
-// Example:
-// final databaseProvider = Provider<AppDatabase>((ref) {
-//   return AppDatabase();
-// });
+/// Provider for the app database instance
+/// Lazy initialized and kept alive for the lifetime of the app
+@Riverpod(keepAlive: true)
+AppDatabase appDatabase(AppDatabaseRef ref) {
+  final database = AppDatabase();
+
+  // Dispose the database when the provider is disposed
+  ref.onDispose(() {
+    database.close();
+  });
+
+  return database;
+}
+
+/// Provider for user database queries
+@riverpod
+AppDatabase userDatabase(UserDatabaseRef ref) {
+  return ref.watch(appDatabaseProvider);
+}
