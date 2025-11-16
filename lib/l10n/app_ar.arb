@@ -1,0 +1,37 @@
+{
+  "@@locale": "ar",
+  "appTitle": "تعافي ما بعد الولادة",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  "welcome": "مرحبا",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "login": "تسجيل الدخول",
+  "signup": "إنشاء حساب",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "home": "الرئيسية",
+  "workouts": "التمارين",
+  "progress": "التقدم",
+  "settings": "الإعدادات",
+  "sos": "مساعدة طارئة",
+  "levelRepair": "إصلاح",
+  "levelRebuild": "إعادة بناء",
+  "levelStrengthen": "تقوية",
+  "deliveryTypeVaginal": "ولادة طبيعية",
+  "deliveryTypeCSection": "ولادة قيصرية",
+  "weeksPostpartum": "أسابيع ما بعد الولادة",
+  "pelvicFloor": "قاع الحوض",
+  "diastasisRecti": "انفراق البطن",
+  "kegelTrainer": "مدرب كيجل",
+  "startWorkout": "بدء التمرين",
+  "completeWorkout": "إكمال التمرين",
+  "save": "حفظ",
+  "cancel": "إلغاء",
+  "next": "التالي",
+  "back": "رجوع",
+  "done": "تم"
+}

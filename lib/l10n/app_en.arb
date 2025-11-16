@@ -1,0 +1,37 @@
+{
+  "@@locale": "en",
+  "appTitle": "Postpartum Recovery",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  "welcome": "Welcome",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "login": "Login",
+  "signup": "Sign Up",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot Password?",
+  "home": "Home",
+  "workouts": "Workouts",
+  "progress": "Progress",
+  "settings": "Settings",
+  "sos": "SOS Help",
+  "levelRepair": "Repair",
+  "levelRebuild": "Rebuild",
+  "levelStrengthen": "Strengthen",
+  "deliveryTypeVaginal": "Vaginal Delivery",
+  "deliveryTypeCSection": "C-Section",
+  "weeksPostpartum": "Weeks Postpartum",
+  "pelvicFloor": "Pelvic Floor",
+  "diastasisRecti": "Diastasis Recti",
+  "kegelTrainer": "Kegel Trainer",
+  "startWorkout": "Start Workout",
+  "completeWorkout": "Complete Workout",
+  "save": "Save",
+  "cancel": "Cancel",
+  "next": "Next",
+  "back": "Back",
+  "done": "Done"
+}
