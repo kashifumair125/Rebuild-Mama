@@ -16,7 +16,7 @@ dependencies:
 
   # Animations
   lottie: ^3.0.0
-  rive: ^0.12.4
+  rive: ^0.13.20
 
   # Local Database
   drift: ^2.14.0
@@ -26,14 +26,14 @@ dependencies:
   flutter_secure_storage: ^9.0.0
 
   # Firebase (Optional)
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.15.3
-  cloud_firestore: ^4.13.6
-  firebase_messaging: ^14.6.0
-  firebase_analytics: ^10.7.4
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  firebase_messaging: ^16.0.4
+  firebase_analytics: ^12.0.4
 
   # UI & Charts
-  fl_chart: ^0.66.0
+  fl_chart: ^1.1.1
   percent_indicator: ^4.2.3
 
   # Media & Files
@@ -42,34 +42,34 @@ dependencies:
   path_provider: ^2.1.1
 
   # Audio & Haptics
-  audioplayers: ^5.2.1
-  vibration: ^1.8.3
-  just_audio: ^0.9.36
+  audioplayers: ^6.5.1
+  vibration: ^3.1.4
+  just_audio: ^0.10.5
   flutter_tts: ^4.0.2
 
   # Localization
-  intl: ^0.18.1
+  intl: ^0.20.2
   flutter_localizations:
     sdk: flutter
 
   # Notifications
-  awesome_notifications: ^0.8.3
+  awesome_notifications: ^0.10.1
 
   # Utilities
   shared_preferences: ^2.2.2
-  connectivity_plus: ^5.0.2
-  permission_handler: ^11.1.0
+  connectivity_plus: ^7.0.0
+  permission_handler: ^12.0.1
   url_launcher: ^6.2.2
 
   # Routing
-  go_router: ^13.0.0
+  go_router: ^17.0.0
 
   # Environment Configuration
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^6.0.0
 
   # Monetization
   in_app_purchase: ^3.1.11
-  purchases_flutter: ^6.0.0
+  purchases_flutter: ^9.9.6
 
   # Encryption
   encrypt: ^5.0.0
@@ -84,7 +84,7 @@ dev_dependencies:
   riverpod_generator: ^2.3.9
   drift_dev: ^2.14.0
   build_runner: ^2.4.7
-  flutter_lints: ^3.0.1
+  flutter_lints: ^6.0.0
   hive_generator: ^2.0.1
 
 flutter:

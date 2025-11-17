@@ -58,28 +58,29 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyAjYZbwPS-sWpp05v95uALerZytGjcc6OI',
+    appId: '1:181824121922:android:0a907a5057680ba32851db',
+    messagingSenderId: '181824121922',
+    projectId: 'rebuild-mama',
+    storageBucket: 'rebuild-mama.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    iosBundleId: 'com.postpartumapp.recovery',
+    apiKey: 'AIzaSyDQRJDNjPvW8uP8FMYCK5I-Cp_FBTnz5GQ',
+    appId: '1:181824121922:ios:362099c65c688fa82851db',
+    messagingSenderId: '181824121922',
+    projectId: 'rebuild-mama',
+    storageBucket: 'rebuild-mama.firebasestorage.app',
+    iosBundleId: 'com.example.postpartumRecoveryApp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'YOUR_MACOS_API_KEY',
-    appId: 'YOUR_MACOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    iosBundleId: 'com.postpartumapp.recovery',
+    apiKey: 'AIzaSyDQRJDNjPvW8uP8FMYCK5I-Cp_FBTnz5GQ',
+    appId: '1:181824121922:ios:362099c65c688fa82851db',
+    messagingSenderId: '181824121922',
+    projectId: 'rebuild-mama',
+    storageBucket: 'rebuild-mama.firebasestorage.app',
+    iosBundleId: 'com.example.postpartumRecoveryApp',
   );
+
 }
