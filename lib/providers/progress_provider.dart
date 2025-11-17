@@ -8,7 +8,7 @@ part 'progress_provider.g.dart';
 // Temporary provider for userId - maps to local database user
 // TODO: Implement proper Firebase UID to local userId mapping
 @riverpod
-int? userId(UserIdRef ref) {
+int? userIdProvider(UserIdProviderRef ref) {
   // For now, return a mock user ID of 1
   // In production, this should look up the local user ID from Firebase UID
   return 1;
@@ -16,7 +16,7 @@ int? userId(UserIdRef ref) {
 
 /// Model for diastasis trend data
 class DiastasisTrend {
-  final List<ProgressRecord> records;
+  final List<Progress> records;
   final double? averageValue;
   final double? improvementPercentage;
   final DateTime? firstRecordDate;
@@ -33,7 +33,7 @@ class DiastasisTrend {
 
 /// Model for pelvic floor progress
 class PelvicFloorProgress {
-  final List<ProgressRecord> records;
+  final List<Progress> records;
   final double? averageValue;
   final double? improvementPercentage;
   final DateTime? firstRecordDate;
@@ -223,7 +223,7 @@ Future<ProgressSummary> progressSummary(ProgressSummaryRef ref) async {
 
 /// Provider to get progress by date range
 @riverpod
-Future<List<ProgressRecord>> progressByDateRange(
+Future<List<Progress>> progressByDateRange(
   ProgressByDateRangeRef ref, {
   required String type,
   required DateTime startDate,
@@ -246,7 +246,7 @@ Future<List<ProgressRecord>> progressByDateRange(
 
 /// Stream provider for real-time diastasis progress
 @riverpod
-Stream<List<ProgressRecord>> diastasisProgressStream(
+Stream<List<Progress>> diastasisProgressStream(
   DiastasisProgressStreamRef ref,
 ) {
   final userId = ref.watch(userIdProvider);
@@ -261,7 +261,7 @@ Stream<List<ProgressRecord>> diastasisProgressStream(
 
 /// Stream provider for real-time pelvic floor progress
 @riverpod
-Stream<List<ProgressRecord>> pelvicFloorProgressStream(
+Stream<List<Progress>> pelvicFloorProgressStream(
   PelvicFloorProgressStreamRef ref,
 ) {
   final userId = ref.watch(userIdProvider);

@@ -21,6 +21,24 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
     return await into(users).insertOnConflictUpdate(user);
   }
 
+  /// Helper method to create a new user with individual parameters
+  Future<int> createUser({
+    required String name,
+    required String email,
+    required String passwordHash,
+    required String deliveryType,
+    required int weeksPostpartum,
+  }) async {
+    final user = UsersCompanion(
+      name: Value(name),
+      email: Value(email),
+      passwordHash: Value(passwordHash),
+      deliveryType: Value(deliveryType),
+      weeksPostpartum: Value(weeksPostpartum),
+    );
+    return await insertUser(user);
+  }
+
   // ============================================================================
   // READ
   // ============================================================================

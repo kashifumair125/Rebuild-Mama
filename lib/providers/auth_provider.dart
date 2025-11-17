@@ -58,7 +58,8 @@ Stream<User?> authStateChanges(AuthStateChangesRef ref) {
 /// Returns AsyncValue<User?> which can be in loading, data, or error state
 @riverpod
 Stream<User?> currentUser(CurrentUserRef ref) {
-  return ref.watch(authStateChangesProvider);
+  final auth = ref.watch(firebaseAuthProvider);
+  return auth.authStateChanges();
 }
 
 /// Provider to check if user is logged in
@@ -148,10 +149,16 @@ Stream<DocumentSnapshot<Map<String, dynamic>>?> userDocument(
 /// Returns AsyncValue<Map<String, dynamic>?> with the user's data
 @riverpod
 Stream<Map<String, dynamic>?> userDocumentData(UserDocumentDataRef ref) async* {
-  final docStream = ref.watch(userDocumentProvider);
+  final userId = ref.watch(currentUserIdProvider);
 
-  await for (final doc in docStream) {
-    yield doc?.data();
+  if (userId == null) {
+    yield null;
+    return;
+  }
+
+  final firestore = ref.watch(firebaseFirestoreProvider);
+  await for (final doc in firestore.collection('users').doc(userId).snapshots()) {
+    yield doc.data();
   }
 }
 
