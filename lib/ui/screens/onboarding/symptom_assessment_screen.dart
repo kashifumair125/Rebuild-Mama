@@ -53,7 +53,7 @@ class _SymptomAssessmentScreenState
       // In production, you'd use the actual Firebase user ID
       await userDao.createUser(
         name: 'User', // You can collect this in signup
-        email: userId ?? 'demo@example.com',
+        email: userId?.toString() ?? 'demo@example.com',
         passwordHash: '', // Handled by Firebase
         deliveryType: deliveryType == DeliveryType.vaginal ? 'vaginal' : 'c_section',
         weeksPostpartum: weeksPostpartum,
