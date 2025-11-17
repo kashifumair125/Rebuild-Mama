@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../providers/onboarding_provider.dart';
 import '../../../providers/database_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/progress_provider.dart';
 import '../../../models/user_profile.dart';
 import 'package:drift/drift.dart' as drift;
 

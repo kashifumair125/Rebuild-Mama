@@ -33,12 +33,12 @@ class DiastasisRectiScreen extends ConsumerWidget {
         ],
       ),
       body: progressAsync.when(
-        data: (progressData) {
+        data: (List progressData) {
           if (progressData.isEmpty) {
             return _buildEmptyState(context);
           }
 
-          return _buildContent(context, theme, progressData);
+          return _buildContent(context, theme, progressData.cast());
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
@@ -109,7 +109,7 @@ class DiastasisRectiScreen extends ConsumerWidget {
   Widget _buildContent(
     BuildContext context,
     ThemeData theme,
-    List<dynamic> progressData,
+    List progressData,
   ) {
     // Get latest measurement
     final latest = progressData.first;

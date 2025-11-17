@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../database/app_database.dart';
 import 'auth_provider.dart';
 import 'database_provider.dart';
+import 'progress_provider.dart';
 import 'package:drift/drift.dart' as drift;
 
 part 'assessment_provider.g.dart';

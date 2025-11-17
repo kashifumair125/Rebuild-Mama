@@ -526,6 +526,25 @@ class AppDatabase extends _$AppDatabase {
       );
     }
   }
+
+  // ============================================================================
+  // DATABASE-LEVEL HELPER METHODS
+  // ============================================================================
+
+  /// Watch user progress by type (helper method for providers)
+  Stream<List<Progress>> watchUserProgress(int userId, String type) {
+    return progressDao.watchProgressByUserAndType(userId, type);
+  }
+
+  /// Get user progress by date range (helper method for providers)
+  Future<List<Progress>> getUserProgressByDateRange({
+    required int userId,
+    required String type,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return progressDao.getProgressByDateRange(userId, startDate, endDate, type: type);
+  }
 }
 
 /// Opens a connection to the database
