@@ -1,17 +1,12 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/app_database.dart';
 import 'auth_provider.dart';
 import 'database_provider.dart';
 import 'progress_provider.dart';
 import 'package:drift/drift.dart' as drift;
 
-part 'assessment_provider.g.dart';
-
 /// Provider for pelvic floor assessments
-@riverpod
-Stream<List<Assessment>> pelvicFloorAssessments(
-  PelvicFloorAssessmentsRef ref,
-) {
+final pelvicFloorAssessmentsProvider = StreamProvider<List<Assessment>>((ref) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -20,13 +15,10 @@ Stream<List<Assessment>> pelvicFloorAssessments(
 
   final db = ref.watch(appDatabaseProvider);
   return db.assessmentDao.watchAssessmentsByUserAndType(userId, 'pelvic_floor');
-}
+});
 
 /// Provider for latest pelvic floor assessment
-@riverpod
-Stream<Assessment?> latestPelvicFloorAssessment(
-  LatestPelvicFloorAssessmentRef ref,
-) {
+final latestPelvicFloorAssessmentProvider = StreamProvider<Assessment?>((ref) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -35,13 +27,10 @@ Stream<Assessment?> latestPelvicFloorAssessment(
 
   final db = ref.watch(appDatabaseProvider);
   return db.assessmentDao.watchLatestAssessmentByType(userId, 'pelvic_floor');
-}
+});
 
 /// Provider for diastasis recti assessments
-@riverpod
-Stream<List<Assessment>> diastasisAssessments(
-  DiastasisAssessmentsRef ref,
-) {
+final diastasisAssessmentsProvider = StreamProvider<List<Assessment>>((ref) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -50,13 +39,10 @@ Stream<List<Assessment>> diastasisAssessments(
 
   final db = ref.watch(appDatabaseProvider);
   return db.assessmentDao.watchAssessmentsByUserAndType(userId, 'diastasis_recti');
-}
+});
 
 /// Provider for latest diastasis assessment
-@riverpod
-Stream<Assessment?> latestDiastasisAssessment(
-  LatestDiastasisAssessmentRef ref,
-) {
+final latestDiastasisAssessmentProvider = StreamProvider<Assessment?>((ref) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -65,13 +51,12 @@ Stream<Assessment?> latestDiastasisAssessment(
 
   final db = ref.watch(appDatabaseProvider);
   return db.assessmentDao.watchLatestAssessmentByType(userId, 'diastasis_recti');
-}
+});
 
 /// Notifier for submitting pelvic floor assessment
-@riverpod
-class PelvicFloorAssessmentSubmitter extends _$PelvicFloorAssessmentSubmitter {
+class PelvicFloorAssessmentSubmitter extends AutoDisposeAsyncNotifier<void> {
   @override
-  FutureOr<void> build() {}
+  Future<void> build() async {}
 
   Future<void> submitAssessment(Map<String, dynamic> answers) async {
     state = const AsyncValue.loading();
@@ -138,11 +123,15 @@ class PelvicFloorAssessmentSubmitter extends _$PelvicFloorAssessmentSubmitter {
   }
 }
 
+final pelvicFloorAssessmentSubmitterProvider =
+    AutoDisposeAsyncNotifierProvider<PelvicFloorAssessmentSubmitter, void>(
+  () => PelvicFloorAssessmentSubmitter(),
+);
+
 /// Notifier for submitting weekly pelvic floor check-in
-@riverpod
-class WeeklyPelvicFloorCheckIn extends _$WeeklyPelvicFloorCheckIn {
+class WeeklyPelvicFloorCheckIn extends AutoDisposeAsyncNotifier<void> {
   @override
-  FutureOr<void> build() {}
+  Future<void> build() async {}
 
   Future<void> submitCheckIn(Map<String, dynamic> answers) async {
     state = const AsyncValue.loading();
@@ -201,11 +190,15 @@ class WeeklyPelvicFloorCheckIn extends _$WeeklyPelvicFloorCheckIn {
   }
 }
 
+final weeklyPelvicFloorCheckInProvider =
+    AutoDisposeAsyncNotifierProvider<WeeklyPelvicFloorCheckIn, void>(
+  () => WeeklyPelvicFloorCheckIn(),
+);
+
 /// Notifier for submitting diastasis recti measurement
-@riverpod
-class DiastasisMeasurementSubmitter extends _$DiastasisMeasurementSubmitter {
+class DiastasisMeasurementSubmitter extends AutoDisposeAsyncNotifier<void> {
   @override
-  FutureOr<void> build() {}
+  Future<void> build() async {}
 
   Future<void> submitMeasurement({
     required double gapWidth,
@@ -291,12 +284,13 @@ class DiastasisMeasurementSubmitter extends _$DiastasisMeasurementSubmitter {
   }
 }
 
+final diastasisMeasurementSubmitterProvider =
+    AutoDisposeAsyncNotifierProvider<DiastasisMeasurementSubmitter, void>(
+  () => DiastasisMeasurementSubmitter(),
+);
+
 /// Provider for assessment improvement comparison
-@riverpod
-Future<Map<String, dynamic>> assessmentImprovement(
-  AssessmentImprovementRef ref,
-  String type,
-) async {
+final assessmentImprovementProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, type) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -308,4 +302,4 @@ Future<Map<String, dynamic>> assessmentImprovement(
 
   final db = ref.read(appDatabaseProvider);
   return await db.assessmentDao.getAssessmentImprovement(userId, type);
-}
+});

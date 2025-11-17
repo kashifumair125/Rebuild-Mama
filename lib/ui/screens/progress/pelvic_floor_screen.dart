@@ -5,6 +5,7 @@ import '../../widgets/pelvic_floor_chart_widget.dart';
 import '../../widgets/progress_card.dart';
 import '../../../providers/assessment_provider.dart';
 import '../../../config/routes.dart';
+import '../../../database/app_database.dart';
 
 /// Pelvic Floor Progress tracking screen
 /// Shows assessment history, trends, and charts
@@ -32,9 +33,9 @@ class PelvicFloorScreen extends ConsumerWidget {
         ],
       ),
       body: assessmentsAsync.when(
-        data: (List assessments) {
+        data: (List<Assessment> assessments) {
           return latestAssessmentAsync.when(
-            data: (latestAssessment) {
+            data: (Assessment? latestAssessment) {
               if (assessments.isEmpty) {
                 return _buildEmptyState(context);
               }
@@ -42,7 +43,7 @@ class PelvicFloorScreen extends ConsumerWidget {
               return _buildContent(
                 context,
                 theme,
-                assessments.cast(),
+                assessments,
                 latestAssessment,
               );
             },
@@ -134,8 +135,8 @@ class PelvicFloorScreen extends ConsumerWidget {
   Widget _buildContent(
     BuildContext context,
     ThemeData theme,
-    List<dynamic> assessments,
-    dynamic latestAssessment,
+    List<Assessment> assessments,
+    Assessment? latestAssessment,
   ) {
     // Calculate current status
     String currentStatus = 'Unknown';

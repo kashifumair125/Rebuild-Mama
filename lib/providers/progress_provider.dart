@@ -1,18 +1,15 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/app_database.dart';
 import 'auth_provider.dart';
 import 'database_provider.dart';
 
-part 'progress_provider.g.dart';
-
 // Temporary provider for userId - maps to local database user
 // TODO: Implement proper Firebase UID to local userId mapping
-@riverpod
-int? userIdProvider(UserIdProviderRef ref) {
+final userIdProvider = Provider<int?>((ref) {
   // For now, return a mock user ID of 1
   // In production, this should look up the local user ID from Firebase UID
   return 1;
-}
+});
 
 /// Model for diastasis trend data
 class DiastasisTrend {
@@ -67,8 +64,7 @@ class ProgressSummary {
 
 /// Provider for diastasis recti trend data
 /// Fetches all diastasis records and calculates trends
-@riverpod
-Future<DiastasisTrend> diastasisTrend(DiastasisTrendRef ref) async {
+final diastasisTrendProvider = FutureProvider<DiastasisTrend>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -88,18 +84,22 @@ Future<DiastasisTrend> diastasisTrend(DiastasisTrendRef ref) async {
   final sortedRecords = records.toList()
     ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
 
-  final firstValue = sortedRecords.first.value;
-  final lastValue = sortedRecords.last.value;
+  // Extract numeric values from the map (gap width for diastasis)
+  final firstValue = sortedRecords.first.value?['gap'] as num?;
+  final lastValue = sortedRecords.last.value?['gap'] as num?;
 
   // Calculate average value
   final averageValue = sortedRecords.fold<double>(
         0.0,
-        (sum, record) => sum + record.value,
+        (sum, record) {
+          final value = record.value?['gap'] as num?;
+          return sum + (value?.toDouble() ?? 0.0);
+        },
       ) /
       sortedRecords.length;
 
   // Calculate improvement percentage (negative change means improvement)
-  final improvementPercentage = firstValue != 0
+  final improvementPercentage = (firstValue != null && firstValue != 0 && lastValue != null)
       ? ((firstValue - lastValue) / firstValue) * 100
       : null;
 
@@ -110,14 +110,11 @@ Future<DiastasisTrend> diastasisTrend(DiastasisTrendRef ref) async {
     firstRecordDate: sortedRecords.first.recordedAt,
     lastRecordDate: sortedRecords.last.recordedAt,
   );
-}
+});
 
 /// Provider for pelvic floor progress data
 /// Fetches all pelvic floor records and calculates progress
-@riverpod
-Future<PelvicFloorProgress> pelvicFloorProgress(
-  PelvicFloorProgressRef ref,
-) async {
+final pelvicFloorProgressProvider = FutureProvider<PelvicFloorProgress>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -137,18 +134,22 @@ Future<PelvicFloorProgress> pelvicFloorProgress(
   final sortedRecords = records.toList()
     ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
 
-  final firstValue = sortedRecords.first.value;
-  final lastValue = sortedRecords.last.value;
+  // Extract numeric values from the map (strength for pelvic floor)
+  final firstValue = sortedRecords.first.value?['strength'] as num?;
+  final lastValue = sortedRecords.last.value?['strength'] as num?;
 
   // Calculate average value
   final averageValue = sortedRecords.fold<double>(
         0.0,
-        (sum, record) => sum + record.value,
+        (sum, record) {
+          final value = record.value?['strength'] as num?;
+          return sum + (value?.toDouble() ?? 0.0);
+        },
       ) /
       sortedRecords.length;
 
   // Calculate improvement percentage (positive change means improvement)
-  final improvementPercentage = firstValue != 0
+  final improvementPercentage = (firstValue != null && firstValue != 0 && lastValue != null)
       ? ((lastValue - firstValue) / firstValue) * 100
       : null;
 
@@ -159,12 +160,11 @@ Future<PelvicFloorProgress> pelvicFloorProgress(
     firstRecordDate: sortedRecords.first.recordedAt,
     lastRecordDate: sortedRecords.last.recordedAt,
   );
-}
+});
 
 /// Provider for overall progress summary
 /// Combines data from all progress types
-@riverpod
-Future<ProgressSummary> progressSummary(ProgressSummaryRef ref) async {
+final progressSummaryProvider = FutureProvider<ProgressSummary>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -219,16 +219,35 @@ Future<ProgressSummary> progressSummary(ProgressSummaryRef ref) async {
     overallImprovement: overallImprovement,
     lastRecordDate: lastRecordDate,
   );
+});
+
+/// Parameter class for progress by date range provider
+class ProgressByDateRangeParams {
+  final String type;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const ProgressByDateRangeParams({
+    required this.type,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProgressByDateRangeParams &&
+          runtimeType == other.runtimeType &&
+          type == other.type &&
+          startDate == other.startDate &&
+          endDate == other.endDate;
+
+  @override
+  int get hashCode => type.hashCode ^ startDate.hashCode ^ endDate.hashCode;
 }
 
 /// Provider to get progress by date range
-@riverpod
-Future<List<Progress>> progressByDateRange(
-  ProgressByDateRangeRef ref, {
-  required String type,
-  required DateTime startDate,
-  required DateTime endDate,
-}) async {
+final progressByDateRangeProvider = FutureProvider.family<List<Progress>, ProgressByDateRangeParams>((ref, params) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -238,17 +257,14 @@ Future<List<Progress>> progressByDateRange(
   final db = ref.read(appDatabaseProvider);
   return await db.getUserProgressByDateRange(
     userId: userId,
-    type: type,
-    startDate: startDate,
-    endDate: endDate,
+    type: params.type,
+    startDate: params.startDate,
+    endDate: params.endDate,
   );
-}
+});
 
 /// Stream provider for real-time diastasis progress
-@riverpod
-Stream<List<Progress>> diastasisProgressStream(
-  DiastasisProgressStreamRef ref,
-) {
+final diastasisProgressStreamProvider = StreamProvider<List<Progress>>((ref) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -257,13 +273,10 @@ Stream<List<Progress>> diastasisProgressStream(
 
   final db = ref.watch(appDatabaseProvider);
   return db.watchUserProgress(userId, 'diastasis');
-}
+});
 
 /// Stream provider for real-time pelvic floor progress
-@riverpod
-Stream<List<Progress>> pelvicFloorProgressStream(
-  PelvicFloorProgressStreamRef ref,
-) {
+final pelvicFloorProgressStreamProvider = StreamProvider<List<Progress>>((ref) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -272,7 +285,7 @@ Stream<List<Progress>> pelvicFloorProgressStream(
 
   final db = ref.watch(appDatabaseProvider);
   return db.watchUserProgress(userId, 'pelvic_floor');
-}
+});
 
 /// Model for workout streak data
 class WorkoutStreak {
@@ -288,8 +301,7 @@ class WorkoutStreak {
 }
 
 /// Provider for workout streak calculation
-@riverpod
-Future<WorkoutStreak> workoutStreak(WorkoutStreakRef ref) async {
+final workoutStreakProvider = FutureProvider<WorkoutStreak>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -310,7 +322,7 @@ Future<WorkoutStreak> workoutStreak(WorkoutStreakRef ref) async {
     longestStreak: longestStreak,
     workedOutToday: workedOutToday,
   );
-}
+});
 
 /// Model for weekly workout statistics
 class WeeklyWorkoutStats {
@@ -328,8 +340,7 @@ class WeeklyWorkoutStats {
 }
 
 /// Provider for weekly workout completion statistics
-@riverpod
-Future<WeeklyWorkoutStats> weeklyWorkoutStats(WeeklyWorkoutStatsRef ref) async {
+final weeklyWorkoutStatsProvider = FutureProvider<WeeklyWorkoutStats>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -372,7 +383,7 @@ Future<WeeklyWorkoutStats> weeklyWorkoutStats(WeeklyWorkoutStatsRef ref) async {
     caloriesBurned: caloriesThisWeek,
     totalWorkouts: totalWorkouts,
   );
-}
+});
 
 /// Model for achievements
 class Achievement {
@@ -396,8 +407,7 @@ class Achievement {
 }
 
 /// Provider for user achievements
-@riverpod
-Future<List<Achievement>> achievements(AchievementsRef ref) async {
+final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -458,11 +468,10 @@ Future<List<Achievement>> achievements(AchievementsRef ref) async {
       target: 600,
     ),
   ];
-}
+});
 
 /// Provider for photo progress
-@riverpod
-Future<List<Progress>> photoProgress(PhotoProgressRef ref) async {
+final photoProgressProvider = FutureProvider<List<Progress>>((ref) async {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -471,4 +480,4 @@ Future<List<Progress>> photoProgress(PhotoProgressRef ref) async {
 
   final db = ref.read(appDatabaseProvider);
   return await db.progressDao.getPhotoProgress(userId);
-}
+});

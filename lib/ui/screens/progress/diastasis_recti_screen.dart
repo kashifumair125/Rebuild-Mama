@@ -7,6 +7,7 @@ import '../../widgets/gap_width_selector.dart';
 import '../../widgets/custom_segmented_button.dart';
 import '../../../providers/assessment_provider.dart';
 import '../../../providers/progress_provider.dart';
+import '../../../database/app_database.dart';
 
 /// Diastasis Recti tracking screen
 /// Shows progress chart, measurements, and allows weekly tracking
@@ -33,12 +34,12 @@ class DiastasisRectiScreen extends ConsumerWidget {
         ],
       ),
       body: progressAsync.when(
-        data: (List progressData) {
+        data: (List<Progress> progressData) {
           if (progressData.isEmpty) {
             return _buildEmptyState(context);
           }
 
-          return _buildContent(context, theme, progressData.cast());
+          return _buildContent(context, theme, progressData);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
@@ -109,7 +110,7 @@ class DiastasisRectiScreen extends ConsumerWidget {
   Widget _buildContent(
     BuildContext context,
     ThemeData theme,
-    List progressData,
+    List<Progress> progressData,
   ) {
     // Get latest measurement
     final latest = progressData.first;
