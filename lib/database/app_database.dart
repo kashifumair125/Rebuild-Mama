@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import 'converters/json_converter.dart';
+import 'database_exceptions.dart';
 import 'daos/user_dao.dart';
 import 'daos/assessment_dao.dart';
 import 'daos/workout_dao.dart';
@@ -13,6 +14,7 @@ import 'daos/progress_dao.dart';
 import 'daos/kegel_session_dao.dart';
 import 'daos/workout_session_dao.dart';
 import 'daos/sos_routine_dao.dart';
+import '../utils/logger.dart';
 
 part 'app_database.g.dart';
 
@@ -317,95 +319,244 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
-        await m.createAll();
+        try {
+          AppLogger.database('Creating database schema v$schemaVersion');
 
-        // Create indexes for performance
-        await customStatement(
-          'CREATE INDEX idx_assessments_user_type ON assessments(user_id, type);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_workouts_user_level ON workouts(user_id, level);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_exercises_workout ON exercises(workout_id, order_index);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_progress_user_type ON progress_records(user_id, type);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_progress_week ON progress_records(user_id, week_number);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_kegel_user ON kegel_sessions(user_id, started_at);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_workout_sessions_user ON workout_sessions(user_id, started_at);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_sos_exercises_routine ON sos_exercises(sos_routine_id, order_index);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_sos_sessions_user ON sos_session_records(user_id, started_at);',
-        );
-        await customStatement(
-          'CREATE INDEX idx_sos_sessions_routine ON sos_session_records(sos_routine_id, completed_at);',
-        );
-      },
-      onUpgrade: (Migrator m, int from, int to) async {
-        // Migrate from version 1 to 2
-        if (from < 2) {
-          // Add WorkoutSessions table
-          await m.createTable(workoutSessions);
+          await m.createAll();
 
-          // Create indexes for workout sessions
-          await customStatement(
-            'CREATE INDEX idx_workout_sessions_user ON workout_sessions(user_id, started_at);',
-          );
-          await customStatement(
-            'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
+          // Create indexes for performance
+          await _createIndexes();
+
+          AppLogger.database('Database schema created successfully');
+        } catch (e, stackTrace) {
+          AppLogger.database('Database creation failed', error: e, stackTrace: stackTrace);
+          throw DatabaseConnectionException(
+            'Failed to create database schema',
+            originalError: e,
+            stackTrace: stackTrace,
           );
         }
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        try {
+          AppLogger.database('Migrating database from v$from to v$to');
 
-        // Migrate from version 2 to 3
-        if (from < 3) {
-          // Add SOS tables
-          await m.createTable(sosRoutines);
-          await m.createTable(sosExercises);
-          await m.createTable(sosSessionRecords);
+          // Migrate from version 1 to 2
+          if (from < 2) {
+            try {
+              // Add WorkoutSessions table
+              await m.createTable(workoutSessions);
 
-          // Create indexes for SOS tables
-          await customStatement(
-            'CREATE INDEX idx_sos_exercises_routine ON sos_exercises(sos_routine_id, order_index);',
+              // Create indexes for workout sessions
+              await customStatement(
+                'CREATE INDEX idx_workout_sessions_user ON workout_sessions(user_id, started_at);',
+              );
+              await customStatement(
+                'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
+              );
+
+              AppLogger.database('Migration v1 to v2 completed');
+            } catch (e, stackTrace) {
+              throw DatabaseMigrationException(
+                'Failed to migrate WorkoutSessions table',
+                from,
+                2,
+                originalError: e,
+                stackTrace: stackTrace,
+              );
+            }
+          }
+
+          // Migrate from version 2 to 3
+          if (from < 3) {
+            try {
+              // Add SOS tables
+              await m.createTable(sosRoutines);
+              await m.createTable(sosExercises);
+              await m.createTable(sosSessionRecords);
+
+              // Create indexes for SOS tables
+              await customStatement(
+                'CREATE INDEX idx_sos_exercises_routine ON sos_exercises(sos_routine_id, order_index);',
+              );
+              await customStatement(
+                'CREATE INDEX idx_sos_sessions_user ON sos_session_records(user_id, started_at);',
+              );
+              await customStatement(
+                'CREATE INDEX idx_sos_sessions_routine ON sos_session_records(sos_routine_id, completed_at);',
+              );
+
+              AppLogger.database('Migration v2 to v3 completed');
+            } catch (e, stackTrace) {
+              throw DatabaseMigrationException(
+                'Failed to migrate SOS tables',
+                from,
+                3,
+                originalError: e,
+                stackTrace: stackTrace,
+              );
+            }
+          }
+
+          AppLogger.database('Database migration completed successfully');
+        } catch (e, stackTrace) {
+          AppLogger.database(
+            'Database migration failed from v$from to v$to',
+            error: e,
+            stackTrace: stackTrace,
           );
-          await customStatement(
-            'CREATE INDEX idx_sos_sessions_user ON sos_session_records(user_id, started_at);',
-          );
-          await customStatement(
-            'CREATE INDEX idx_sos_sessions_routine ON sos_session_records(sos_routine_id, completed_at);',
-          );
+          rethrow;
         }
       },
       beforeOpen: (details) async {
-        // Enable foreign key constraints
-        await customStatement('PRAGMA foreign_keys = ON;');
+        try {
+          // Enable foreign key constraints
+          await customStatement('PRAGMA foreign_keys = ON;');
+
+          // Enable Write-Ahead Logging for better performance
+          await customStatement('PRAGMA journal_mode = WAL;');
+
+          // Optimize database
+          await customStatement('PRAGMA synchronous = NORMAL;');
+
+          AppLogger.database('Database opened successfully (version: ${details.versionNow})');
+        } catch (e, stackTrace) {
+          AppLogger.database('Database configuration failed', error: e, stackTrace: stackTrace);
+          throw DatabaseConnectionException(
+            'Failed to configure database',
+            originalError: e,
+            stackTrace: stackTrace,
+          );
+        }
       },
     );
   }
 
+  /// Create all database indexes
+  Future<void> _createIndexes() async {
+    try {
+      await customStatement(
+        'CREATE INDEX idx_assessments_user_type ON assessments(user_id, type);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_workouts_user_level ON workouts(user_id, level);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_exercises_workout ON exercises(workout_id, order_index);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_progress_user_type ON progress_records(user_id, type);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_progress_week ON progress_records(user_id, week_number);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_kegel_user ON kegel_sessions(user_id, started_at);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_workout_sessions_user ON workout_sessions(user_id, started_at);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_workout_sessions_workout ON workout_sessions(workout_id, completed_at);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_sos_exercises_routine ON sos_exercises(sos_routine_id, order_index);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_sos_sessions_user ON sos_session_records(user_id, started_at);',
+      );
+      await customStatement(
+        'CREATE INDEX idx_sos_sessions_routine ON sos_session_records(sos_routine_id, completed_at);',
+      );
+
+      AppLogger.database('Database indexes created successfully');
+    } catch (e, stackTrace) {
+      AppLogger.database('Failed to create indexes', error: e, stackTrace: stackTrace);
+      throw DatabaseConnectionException(
+        'Failed to create database indexes',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   /// Close the database connection
   Future<void> closeDatabase() async {
-    await close();
+    try {
+      AppLogger.database('Closing database connection');
+      await close();
+      AppLogger.database('Database connection closed');
+    } catch (e, stackTrace) {
+      AppLogger.database('Failed to close database', error: e, stackTrace: stackTrace);
+      throw DatabaseConnectionException(
+        'Failed to close database connection',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Delete the database file (useful for testing or reset)
   static Future<void> deleteDatabase() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'postpartum_recovery.sqlite'));
-    if (await file.exists()) {
-      await file.delete();
+    try {
+      AppLogger.database('Deleting database file');
+
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dbFolder.path, 'postpartum_recovery.sqlite'));
+
+      if (await file.exists()) {
+        await file.delete();
+        AppLogger.database('Database file deleted successfully');
+      } else {
+        AppLogger.database('Database file does not exist');
+      }
+    } catch (e, stackTrace) {
+      AppLogger.database('Failed to delete database', error: e, stackTrace: stackTrace);
+      throw DatabaseConnectionException(
+        'Failed to delete database file',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Verify database integrity
+  Future<bool> verifyIntegrity() async {
+    try {
+      AppLogger.database('Verifying database integrity');
+
+      final result = await customSelect('PRAGMA integrity_check;').get();
+      final isOk = result.isNotEmpty && result.first.data['integrity_check'] == 'ok';
+
+      if (isOk) {
+        AppLogger.database('Database integrity check passed');
+      } else {
+        AppLogger.database('Database integrity check failed');
+      }
+
+      return isOk;
+    } catch (e, stackTrace) {
+      AppLogger.database('Database integrity check failed', error: e, stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  /// Optimize database (run VACUUM and ANALYZE)
+  Future<void> optimizeDatabase() async {
+    try {
+      AppLogger.database('Optimizing database');
+
+      await customStatement('VACUUM;');
+      await customStatement('ANALYZE;');
+
+      AppLogger.database('Database optimized successfully');
+    } catch (e, stackTrace) {
+      AppLogger.database('Database optimization failed', error: e, stackTrace: stackTrace);
+      throw DatabaseConnectionException(
+        'Failed to optimize database',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }
@@ -413,8 +564,22 @@ class AppDatabase extends _$AppDatabase {
 /// Opens a connection to the database
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'postpartum_recovery.sqlite'));
-    return NativeDatabase(file);
+    try {
+      AppLogger.database('Opening database connection');
+
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dbFolder.path, 'postpartum_recovery.sqlite'));
+
+      AppLogger.database('Database path: ${file.path}');
+
+      return NativeDatabase(file);
+    } catch (e, stackTrace) {
+      AppLogger.database('Failed to open database connection', error: e, stackTrace: stackTrace);
+      throw DatabaseConnectionException(
+        'Failed to open database connection',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
   });
 }
