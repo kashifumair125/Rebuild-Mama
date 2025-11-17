@@ -15,7 +15,7 @@ class AppTheme {
   static const Color errorRed = Color(0xFFFF6B6B);
   static const Color successGreen = Color(0xFF6BCF7F);
   static const Color warningYellow = Color(0xFFFFC837);
-  static const Color infoBl Color(0xFF5DADE2);
+  static const Color infoBlue = Color(0xFF5DADE2);
 
   // Dark mode warm colors
   static const Color darkPrimaryPink = Color(0xFFFFB6C1);

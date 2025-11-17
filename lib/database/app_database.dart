@@ -38,9 +38,6 @@ class Users extends Table {
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column> get primaryKey => {userId};
 }
 
 /// Assessments table - stores pelvic floor and diastasis recti assessments
@@ -63,12 +60,6 @@ class Assessments extends Table {
   TextColumn get classification => text()();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column> get primaryKey => {assessmentId};
-
-  @override
-  List<Set<Column>> get uniqueKeys => [];
 }
 
 /// Workouts table - stores workout programs
@@ -89,9 +80,6 @@ class Workouts extends Table {
 
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get completedAt => dateTime().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {workoutId};
 }
 
 /// Exercises table - stores individual exercises for workouts
@@ -115,9 +103,6 @@ class Exercises extends Table {
 
   /// Order of exercise in the workout
   IntColumn get orderIndex => integer()();
-
-  @override
-  Set<Column> get primaryKey => {exerciseId};
 }
 
 /// Progress table - stores user progress tracking data
@@ -137,9 +122,6 @@ class ProgressRecords extends Table {
 
   /// Week number since starting the program
   IntColumn get weekNumber => integer()();
-
-  @override
-  Set<Column> get primaryKey => {progressId};
 }
 
 /// Kegel Sessions table - stores kegel exercise tracking data
@@ -157,9 +139,6 @@ class KegelSessions extends Table {
 
   DateTimeColumn get startedAt => dateTime()();
   DateTimeColumn get endedAt => dateTime()();
-
-  @override
-  Set<Column> get primaryKey => {sessionId};
 }
 
 /// Workout Sessions table - stores individual workout session tracking
@@ -191,9 +170,6 @@ class WorkoutSessions extends Table {
 
   /// Whether the session was fully completed
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
-
-  @override
-  Set<Column> get primaryKey => {workoutSessionId};
 }
 
 /// SOS Routines table - stores emergency relief routine definitions
@@ -224,9 +200,6 @@ class SosRoutines extends Table {
 
   /// Display order
   IntColumn get orderIndex => integer()();
-
-  @override
-  Set<Column> get primaryKey => {sosRoutineId};
 }
 
 /// SOS Exercises table - stores individual exercises for SOS routines
@@ -250,9 +223,6 @@ class SosExercises extends Table {
 
   /// Order of exercise in the routine
   IntColumn get orderIndex => integer()();
-
-  @override
-  Set<Column> get primaryKey => {sosExerciseId};
 }
 
 /// SOS Session Records table - tracks completed SOS routine sessions
@@ -269,9 +239,6 @@ class SosSessionRecords extends Table {
 
   /// Whether the session was fully completed
   BoolColumn get isCompleted => boolean().withDefault(const Constant(true))();
-
-  @override
-  Set<Column> get primaryKey => {sosSessionId};
 }
 
 // ============================================================================
