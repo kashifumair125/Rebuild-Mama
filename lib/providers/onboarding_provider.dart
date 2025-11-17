@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
+
+part 'onboarding_provider.g.dart';
 
 // ============================================================================
 // ONBOARDING STATE PROVIDERS
@@ -224,4 +228,41 @@ bool canProceedFromStep(int step, WidgetRef ref) {
     default:
       return false;
   }
+}
+
+// ============================================================================
+// ONBOARDING COMPLETION STATE
+// ============================================================================
+
+/// Model for onboarding state
+class OnboardingState {
+  final bool isOnboardingComplete;
+  final DateTime? completedAt;
+
+  const OnboardingState({
+    required this.isOnboardingComplete,
+    this.completedAt,
+  });
+}
+
+/// Provider for checking if onboarding is complete
+@riverpod
+Future<OnboardingState> onboardingState(OnboardingStateRef ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  final isComplete = prefs.getBool('onboarding_complete') ?? false;
+  final completedAtMillis = prefs.getInt('onboarding_completed_at');
+
+  return OnboardingState(
+    isOnboardingComplete: isComplete,
+    completedAt: completedAtMillis != null
+        ? DateTime.fromMillisecondsSinceEpoch(completedAtMillis)
+        : null,
+  );
+}
+
+/// Method to mark onboarding as complete
+Future<void> markOnboardingComplete() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('onboarding_complete', true);
+  await prefs.setInt('onboarding_completed_at', DateTime.now().millisecondsSinceEpoch);
 }

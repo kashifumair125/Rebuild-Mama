@@ -32,7 +32,7 @@ class PelvicFloorScreen extends ConsumerWidget {
         ],
       ),
       body: assessmentsAsync.when(
-        data: (assessments) {
+        data: (List assessments) {
           return latestAssessmentAsync.when(
             data: (latestAssessment) {
               if (assessments.isEmpty) {
@@ -42,7 +42,7 @@ class PelvicFloorScreen extends ConsumerWidget {
               return _buildContent(
                 context,
                 theme,
-                assessments,
+                assessments.cast(),
                 latestAssessment,
               );
             },

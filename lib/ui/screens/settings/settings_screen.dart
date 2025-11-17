@@ -15,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDarkMode = ref.watch(isDarkModeEnabledProvider);
-    final notificationsEnabled = ref.watch(notificationsEnabledProvider);
+    final notificationsEnabled = ref.watch(areNotificationsEnabledProvider);
     final userAsync = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -52,7 +52,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             value: isDarkMode,
             onChanged: (value) {
-              ref.read(isDarkModeEnabledProvider.notifier).setDarkMode(value);
+              ref.read(darkModeProvider.notifier).setEnabled(value);
             },
           ),
 
@@ -71,7 +71,7 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (value) {
               ref
                   .read(notificationsEnabledProvider.notifier)
-                  .setNotificationsEnabled(value);
+                  .setEnabled(value);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

@@ -25,6 +25,24 @@ class AssessmentDao extends DatabaseAccessor<AppDatabase> with _$AssessmentDaoMi
     });
   }
 
+  /// Helper method to create a new assessment with individual parameters
+  Future<int> createAssessment({
+    required int userId,
+    required String type,
+    required Map<String, dynamic> questions,
+    required Map<String, dynamic> answers,
+    required String classification,
+  }) async {
+    final assessment = AssessmentsCompanion(
+      userId: Value(userId),
+      type: Value(type),
+      questions: Value(questions),
+      answers: Value(answers),
+      classification: Value(classification),
+    );
+    return await insertAssessment(assessment);
+  }
+
   // ============================================================================
   // READ
   // ============================================================================

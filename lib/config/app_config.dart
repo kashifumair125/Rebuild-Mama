@@ -196,6 +196,7 @@ class AppConfig {
         enableAnalytics: false,
         enableCrashReporting: false,
         showDebugBanner: true,
+        apiTimeout: 30000,
       );
 
   /// Staging configuration
@@ -206,6 +207,7 @@ class AppConfig {
         enableAnalytics: true,
         enableCrashReporting: true,
         showDebugBanner: true,
+        apiTimeout: 30000,
       );
 
   /// Production configuration
@@ -216,6 +218,7 @@ class AppConfig {
         enableAnalytics: true,
         enableCrashReporting: true,
         showDebugBanner: false,
+        apiTimeout: 30000,
       );
 
   /// Check if app is in development mode
