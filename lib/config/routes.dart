@@ -23,25 +23,23 @@ import '../ui/screens/home/pelvic_floor_checkin_screen.dart';
 import '../ui/screens/sos/sos_home_screen.dart';
 import '../ui/screens/sos/sos_routine_screen.dart';
 
-// TODO: Import other screens once they are implemented
-// import 'package:postpartum_recovery_app/ui/screens/splash_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/home/home_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/home/level_selection_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/home/workout_list_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/workout/kegel_trainer_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/progress/progress_dashboard_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/progress/diastasis_recti_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/progress/pelvic_floor_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/progress/photo_progress_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/sos/sos_home_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/sos/sos_routine_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/settings/settings_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/settings/language_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/settings/privacy_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/settings/about_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/auth/login_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/auth/signup_screen.dart';
-// import 'package:postpartum_recovery_app/ui/screens/auth/forgot_password_screen.dart';
+// Implemented screens
+import '../ui/screens/splash_screen.dart';
+import '../ui/screens/home/home_screen.dart';
+import '../ui/screens/settings/settings_screen.dart';
+import '../ui/screens/auth/login_screen.dart';
+import '../ui/screens/auth/signup_screen.dart';
+
+// TODO: Import remaining screens once they are implemented
+// import '../ui/screens/home/level_selection_screen.dart';
+// import '../ui/screens/home/workout_list_screen.dart';
+// import '../ui/screens/workout/kegel_trainer_screen.dart';
+// import '../ui/screens/progress/progress_dashboard_screen.dart';
+// import '../ui/screens/progress/photo_progress_screen.dart';
+// import '../ui/screens/settings/language_screen.dart';
+// import '../ui/screens/settings/privacy_screen.dart';
+// import '../ui/screens/settings/about_screen.dart';
+// import '../ui/screens/auth/forgot_password_screen.dart';
 
 /// App Router Configuration using GoRouter
 class AppRouter {
@@ -95,31 +93,19 @@ class AppRouter {
       GoRoute(
         path: splash,
         name: 'splash',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Splash Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const SplashScreen(),
       ),
 
       // Auth Routes
       GoRoute(
         path: login,
         name: 'login',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Login Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: signup,
         name: 'signup',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Signup Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
         path: forgotPassword,
@@ -152,11 +138,7 @@ class AppRouter {
       GoRoute(
         path: home,
         name: 'home',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Home Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const HomeScreen(),
       ),
       GoRoute(
         path: levelSelection,
@@ -291,11 +273,7 @@ class AppRouter {
       GoRoute(
         path: settings,
         name: 'settings',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Settings Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: language,
