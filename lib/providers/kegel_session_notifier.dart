@@ -94,23 +94,23 @@ class KegelSessionNotifier extends StateNotifier<KegelSessionState> {
   /// Start the timer
   void _startTimer() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _tick();
     });
   }
 
-  /// Timer tick (every 100ms)
+  /// Timer tick (every 1000ms / 1 second)
   void _tick() {
     if (state.status != KegelSessionStatus.running) return;
 
-    final newRemainingSeconds = state.remainingSeconds - 0.1;
+    final newRemainingSeconds = state.remainingSeconds - 1;
 
     // Update progress within current phase
     final phaseDuration = state.getPhaseDuration(state.currentPhase);
     final phaseProgress = 1.0 - (newRemainingSeconds / phaseDuration);
 
     state = state.copyWith(
-      remainingSeconds: newRemainingSeconds.clamp(0, double.infinity).toInt(),
+      remainingSeconds: newRemainingSeconds.clamp(0, double.maxFinite).toInt(),
       progress: phaseProgress.clamp(0.0, 1.0),
     );
 

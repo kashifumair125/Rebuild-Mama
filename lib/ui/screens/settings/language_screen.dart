@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/preferences_provider.dart';
 
 /// Language selection screen
-class LanguageScreen extends StatefulWidget {
+class LanguageScreen extends ConsumerWidget {
   const LanguageScreen({super.key});
 
-  @override
-  State<LanguageScreen> createState() => _LanguageScreenState();
-}
-
-class _LanguageScreenState extends State<LanguageScreen> {
-  String _selectedLanguage = 'en';
-
-  final List<Map<String, String>> _languages = [
+  static const List<Map<String, String>> _languages = [
     {'code': 'en', 'name': 'English', 'nativeName': 'English'},
     {'code': 'es', 'name': 'Spanish', 'nativeName': 'Español'},
     {'code': 'fr', 'name': 'French', 'nativeName': 'Français'},
@@ -25,8 +20,9 @@ class _LanguageScreenState extends State<LanguageScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final currentLanguage = ref.watch(currentLanguageProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -66,7 +62,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
               separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final language = _languages[index];
-                final isSelected = _selectedLanguage == language['code'];
+                final isSelected = currentLanguage == language['code'];
 
                 return ListTile(
                   leading: Container(
@@ -103,20 +99,21 @@ class _LanguageScreenState extends State<LanguageScreen> {
                           color: theme.colorScheme.primary,
                         )
                       : null,
-                  onTap: () {
-                    setState(() {
-                      _selectedLanguage = language['code']!;
-                    });
+                  onTap: () async {
+                    // Save language preference
+                    await ref.read(languageProvider.notifier).setLanguage(language['code']!);
 
-                    // Show snackbar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Language changed to ${language['name']}. This feature is coming soon!',
+                    if (context.mounted) {
+                      // Show confirmation
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Language changed to ${language['name']}',
+                          ),
+                          duration: const Duration(seconds: 2),
                         ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
+                      );
+                    }
                   },
                 );
               },
@@ -145,7 +142,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Currently, only English is fully supported. More languages coming soon!',
+                    'Currently, English and Arabic are fully supported. More languages coming soon!',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.8),
                     ),

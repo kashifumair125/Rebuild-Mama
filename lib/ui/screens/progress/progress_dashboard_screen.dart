@@ -1,13 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:drift/drift.dart' as drift;
 import '../../../providers/progress_provider.dart';
+import '../../../providers/assessment_provider.dart';
 import '../../../database/app_database.dart';
+import '../../../providers/database_provider.dart';
 import '../../widgets/diastasis_chart_widget.dart';
 import '../../widgets/pelvic_floor_strength_indicator.dart';
 import '../../widgets/workout_calendar_heatmap.dart';
 import '../../widgets/photo_progress_timeline.dart';
 import '../../widgets/achievement_badges.dart';
 import '../../widgets/progress_summary_card.dart';
+import '../../widgets/gap_width_selector.dart';
+import '../../widgets/custom_segmented_button.dart';
 import '../../themes/colors.dart';
 
 /// Comprehensive progress tracking dashboard with 4 main sections
@@ -641,23 +649,286 @@ class _ProgressDashboardScreenState
   }
 
   void _showLogMeasurementDialog(BuildContext context) {
-    // TODO: Implement measurement logging dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Log measurement dialog - TODO')),
+    double? gapWidth;
+    bool? hasDome;
+    String? separation;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          final theme = Theme.of(context);
+
+          return AlertDialog(
+            title: const Text('Log Diastasis Measurement'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GapWidthSelector(
+                    selectedGap: gapWidth,
+                    onGapSelected: (gap) {
+                      setState(() {
+                        gapWidth = gap;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  CustomSegmentedButton(
+                    label: 'Is there a visible dome when standing?',
+                    value: hasDome,
+                    onChanged: (value) {
+                      setState(() {
+                        hasDome = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Visual Separation Assessment',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...[
+                    {'value': 'slight', 'label': 'Slight'},
+                    {'value': 'moderate', 'label': 'Moderate'},
+                    {'value': 'severe', 'label': 'Severe'},
+                  ].map((option) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: InkWell(
+                      onTap: () => setState(() => separation = option['value']),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: separation == option['value']
+                              ? theme.colorScheme.primary.withOpacity(0.1)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: separation == option['value']
+                                ? theme.colorScheme.primary
+                                : Colors.grey.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              separation == option['value']
+                                  ? Icons.check_circle
+                                  : Icons.circle_outlined,
+                              color: separation == option['value']
+                                  ? theme.colorScheme.primary
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              option['label']!,
+                              style: TextStyle(
+                                fontWeight: separation == option['value']
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: separation == option['value']
+                                    ? theme.colorScheme.primary
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: gapWidth != null && hasDome != null && separation != null
+                    ? () {
+                        ref.read(diastasisMeasurementSubmitterProvider.notifier).submitMeasurement(
+                          gapWidth: gapWidth!,
+                          hasDome: hasDome!,
+                          separationVisual: separation!,
+                        );
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Measurement saved successfully!')),
+                        );
+                        // Refresh data
+                        ref.invalidate(diastasisProgressStreamProvider);
+                      }
+                    : null,
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
   void _showAddPhotoDialog(BuildContext context) {
-    // TODO: Implement photo upload dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Add photo dialog - TODO')),
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Add Progress Photo',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.lock_outline, size: 16, color: AppColors.info),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Photos are stored only on your device',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.info,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: source,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    try {
+      // Save to app documents directory
+      final appDir = await getApplicationDocumentsDirectory();
+      final photoDir = Directory('${appDir.path}/progress_photos');
+      if (!await photoDir.exists()) {
+        await photoDir.create(recursive: true);
+      }
+
+      final fileName = 'progress_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedPath = '${photoDir.path}/$fileName';
+
+      // Copy file to app directory
+      final file = File(pickedFile.path);
+      await file.copy(savedPath);
+
+      // Get user ID and calculate week number
+      final userId = ref.read(userIdProvider);
+      if (userId == null) return;
+
+      final db = ref.read(appDatabaseProvider);
+
+      // Calculate week number (simplified - from first photo or week 1)
+      final existingPhotos = await db.progressDao.getPhotoProgress(userId);
+      int weekNumber = 1;
+      if (existingPhotos.isNotEmpty) {
+        final firstPhoto = existingPhotos.last;
+        final daysDiff = DateTime.now().difference(firstPhoto.recordedAt).inDays;
+        weekNumber = (daysDiff / 7).floor() + 1;
+      }
+
+      // Save to database
+      final progress = ProgressRecordsCompanion(
+        userId: drift.Value(userId),
+        type: const drift.Value('photo'),
+        value: drift.Value({'photoPath': savedPath}),
+        weekNumber: drift.Value(weekNumber),
+        recordedAt: drift.Value(DateTime.now()),
+      );
+
+      await db.progressDao.insertProgress(progress);
+
+      // Refresh photo progress
+      ref.invalidate(photoProgressProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo saved successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving photo: $e')),
+        );
+      }
+    }
+  }
+
   void _showExportDialog(BuildContext context) {
-    // TODO: Implement PDF export
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export feature - TODO')),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Export Progress Report'),
+        content: const Text(
+          'Export your progress data as a PDF report that you can share with your healthcare provider.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Export feature coming soon!')),
+              );
+            },
+            child: const Text('Export PDF'),
+          ),
+        ],
+      ),
     );
   }
 }
