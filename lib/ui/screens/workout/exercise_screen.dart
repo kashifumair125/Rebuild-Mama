@@ -146,7 +146,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> {
     final exercise = session.currentExercise;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text('Exercise ${session.exercisesCompleted} of ${session.totalExercises}'),
         leading: IconButton(

@@ -10,6 +10,7 @@ import '../ui/screens/onboarding/symptom_assessment_screen.dart';
 import '../ui/screens/workout/workout_detail_screen.dart';
 import '../ui/screens/workout/exercise_screen.dart';
 import '../ui/screens/workout/workout_complete_screen.dart';
+import '../ui/screens/workout/exercise_detail_screen.dart';
 
 // Progress screens
 import '../ui/screens/progress/pelvic_floor_screen.dart';
@@ -29,6 +30,7 @@ import '../ui/screens/home/home_screen.dart';
 import '../ui/screens/settings/settings_screen.dart';
 import '../ui/screens/auth/login_screen.dart';
 import '../ui/screens/auth/signup_screen.dart';
+import '../ui/screens/auth/biometric_lock_screen.dart';
 
 // Implemented screens
 import '../ui/screens/home/level_selection_screen.dart';
@@ -55,6 +57,7 @@ class AppRouter {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String forgotPassword = '/forgot-password';
+  static const String biometricLock = '/biometric-lock';
 
   // Onboarding routes
   static const String onboardingDeliveryType = '/onboarding/delivery-type';
@@ -71,6 +74,7 @@ class AppRouter {
   static const String exercise = '/workout/exercise/:id';
   static const String workoutComplete = '/workout/complete';
   static const String kegelTrainer = '/workout/kegel-trainer';
+  static const String exerciseDetail = '/workout/exercise-detail/:key';
 
   // Progress routes
   static const String progressDashboard = '/progress';
@@ -125,6 +129,11 @@ class AppRouter {
             child: Text('Forgot Password Screen - TODO: Implement'),
           ),
         ),
+      ),
+      GoRoute(
+        path: biometricLock,
+        name: 'biometricLock',
+        builder: (context, state) => const BiometricLockScreen(),
       ),
 
       // Onboarding Routes
@@ -205,6 +214,14 @@ class AppRouter {
         path: kegelTrainer,
         name: 'kegelTrainer',
         builder: (context, state) => const KegelTrainerScreen(),
+      ),
+      GoRoute(
+        path: exerciseDetail,
+        name: 'exerciseDetail',
+        builder: (context, state) {
+          final exerciseKey = state.pathParameters['key'] ?? '';
+          return ExerciseDetailScreen(exerciseKey: exerciseKey);
+        },
       ),
 
       // Progress Routes
