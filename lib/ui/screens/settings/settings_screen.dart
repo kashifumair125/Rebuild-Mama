@@ -5,6 +5,7 @@ import '../../../config/routes.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/biometric_provider.dart';
 import '../../../providers/preferences_provider.dart';
+import '../../../providers/biometric_provider.dart';
 import '../../../utils/logger.dart';
 
 /// Settings screen for app preferences and account management
@@ -141,47 +142,39 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRouter.changePassword),
           ),
-          
-          // Biometric Lock Option
-          Consumer(
-            builder: (context, ref, child) {
-              final biometricAvailable = ref.watch(isBiometricAvailableProvider);
-              final biometricEnabled = ref.watch(isBiometricEnabledProvider);
-              
-              return biometricAvailable.when(
-                data: (available) {
-                  if (available) {
-                    return SwitchListTile(
-                      title: const Text('Biometric Lock'),
-                      subtitle: const Text('Use fingerprint/face ID to unlock app'),
-                      secondary: Icon(
-                        Icons.fingerprint,
-                        color: theme.colorScheme.primary,
+          // Biometric Lock
+          ref.watch(isBiometricAvailableProvider).when(
+            data: (available) {
+              if (!available) return const SizedBox.shrink();
+
+              final biometricState = ref.watch(biometricEnabledNotifierProvider);
+              final isEnabled = biometricState.valueOrNull ?? false;
+
+              return SwitchListTile(
+                title: const Text('Biometric Lock'),
+                subtitle: const Text('Use fingerprint/face ID to unlock app'),
+                secondary: Icon(
+                  Icons.fingerprint,
+                  color: theme.colorScheme.primary,
+                ),
+                value: isEnabled,
+                onChanged: (value) async {
+                  final success = await ref
+                      .read(biometricEnabledNotifierProvider.notifier)
+                      .toggle();
+                  if (!success && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Biometric authentication failed'),
                       ),
-                      value: biometricEnabled.value ?? false,
-                      onChanged: (value) async {
-                        final service = ref.read(biometricServiceProvider);
-                        if (value) {
-                          final authenticated = await service.authenticate();
-                          if (authenticated) {
-                            await service.enableBiometric();
-                            ref.invalidate(isBiometricEnabledProvider);
-                          }
-                        } else {
-                          await service.disableBiometric();
-                          ref.invalidate(isBiometricEnabledProvider);
-                        }
-                      },
                     );
                   }
-                  return const SizedBox.shrink();
                 },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
               );
             },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
-          
           ListTile(
             leading: Icon(
               Icons.feedback_outlined,

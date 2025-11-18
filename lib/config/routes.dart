@@ -10,6 +10,7 @@ import '../ui/screens/onboarding/symptom_assessment_screen.dart';
 import '../ui/screens/workout/workout_detail_screen.dart';
 import '../ui/screens/workout/exercise_screen.dart';
 import '../ui/screens/workout/workout_complete_screen.dart';
+import '../ui/screens/workout/exercise_detail_screen.dart';
 
 // Progress screens
 import '../ui/screens/progress/pelvic_floor_screen.dart';
@@ -73,6 +74,7 @@ class AppRouter {
   static const String exercise = '/workout/exercise/:id';
   static const String workoutComplete = '/workout/complete';
   static const String kegelTrainer = '/workout/kegel-trainer';
+  static const String exerciseDetail = '/workout/exercise-detail/:key';
 
   // Progress routes
   static const String progressDashboard = '/progress';
@@ -212,6 +214,14 @@ class AppRouter {
         path: kegelTrainer,
         name: 'kegelTrainer',
         builder: (context, state) => const KegelTrainerScreen(),
+      ),
+      GoRoute(
+        path: exerciseDetail,
+        name: 'exerciseDetail',
+        builder: (context, state) {
+          final exerciseKey = state.pathParameters['key'] ?? '';
+          return ExerciseDetailScreen(exerciseKey: exerciseKey);
+        },
       ),
 
       // Progress Routes

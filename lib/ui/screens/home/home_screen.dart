@@ -261,7 +261,7 @@ class _TodayWorkoutCard extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: () => context.push(AppRouter.levelSelection),
+        onTap: () => context.push(AppRouter.workoutList),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Row(

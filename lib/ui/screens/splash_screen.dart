@@ -5,6 +5,7 @@ import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/biometric_provider.dart';
 import '../../providers/onboarding_provider.dart';
+import '../../providers/biometric_provider.dart';
 import '../../utils/logger.dart';
 
 /// Splash screen that shows the app logo and handles initial navigation
@@ -53,6 +54,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         // Onboarding not complete, navigate to first onboarding screen
         AppLogger.info('Onboarding not complete, navigating to onboarding');
         if (mounted) context.go(AppRouter.onboardingDeliveryType);
+        return;
+      }
+
+      // Check if biometric lock is enabled
+      final biometricService = ref.read(biometricServiceProvider);
+      final biometricEnabled = await biometricService.isBiometricEnabled();
+
+      if (biometricEnabled) {
+        // Show biometric lock screen
+        AppLogger.info('Biometric lock enabled, navigating to biometric lock');
+        if (mounted) context.go(AppRouter.biometricLock);
+        return;
+      }
+
+      // Check if biometric lock is enabled
+      final biometricService = ref.read(biometricServiceProvider);
+      final biometricEnabled = await biometricService.isBiometricEnabled();
+
+      if (biometricEnabled) {
+        // Show biometric lock screen
+        AppLogger.info('Biometric lock enabled, navigating to biometric lock');
+        if (mounted) context.go(AppRouter.biometricLock);
         return;
       }
 
