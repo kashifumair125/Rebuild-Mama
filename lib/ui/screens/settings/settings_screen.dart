@@ -129,13 +129,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             title: const Text('Edit Profile'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Edit Profile - Coming soon'),
-                ),
-              );
-            },
+            onTap: () => context.push(AppRouter.editProfile),
           ),
           ListTile(
             leading: Icon(
@@ -144,13 +138,17 @@ class SettingsScreen extends ConsumerWidget {
             ),
             title: const Text('Change Password'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Change Password - Coming soon'),
-                ),
-              );
-            },
+            onTap: () => context.push(AppRouter.changePassword),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.feedback_outlined,
+              color: theme.colorScheme.primary,
+            ),
+            title: const Text('Send Feedback'),
+            subtitle: const Text('Help us improve'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRouter.sendFeedback),
           ),
           ListTile(
             leading: Icon(

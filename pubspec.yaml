@@ -31,6 +31,10 @@ dependencies:
   cloud_firestore: ^6.1.0
   firebase_messaging: ^16.0.4
   firebase_analytics: ^12.0.4
+  google_sign_in: ^6.2.1
+
+  # Biometric Authentication
+  local_auth: ^2.3.0
 
   # UI & Charts
   fl_chart: ^1.1.1
