@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart' as drift;
 import '../../../providers/progress_provider.dart';
 import '../../../providers/assessment_provider.dart';
+import '../../../providers/workout_provider.dart';
 import '../../../database/app_database.dart';
 import '../../../providers/database_provider.dart';
 import '../../widgets/diastasis_chart_widget.dart';
@@ -55,6 +56,12 @@ class _ProgressDashboardScreenState
     final weeklyStatsAsync = ref.watch(weeklyWorkoutStatsProvider);
     final achievementsAsync = ref.watch(achievementsProvider);
     final photoProgressAsync = ref.watch(photoProgressProvider);
+
+    // Get user ID for workout sessions
+    final userId = ref.watch(userIdProvider);
+    final workoutSessionsAsync = userId != null
+        ? ref.watch(watchWorkoutSessionsProvider(userId))
+        : const AsyncValue<List<WorkoutSession>>.data([]);
 
     return Scaffold(
       appBar: AppBar(
@@ -129,6 +136,7 @@ class _ProgressDashboardScreenState
             workoutStreakAsync,
             weeklyStatsAsync,
             photoProgressAsync,
+            workoutSessionsAsync,
           ),
         ],
       ),
@@ -158,24 +166,28 @@ class _ProgressDashboardScreenState
           children: [
             // Progress Summary Card
             workoutStreak.when(
-              data: (streak) {
-                final healthScore = ProgressSummaryCard.calculateHealthScore(
-                  diastasisImprovement: null,
-                  pelvicFloorImprovement: null,
-                  workoutStreak: streak.currentStreak,
-                  completedWorkouts: 0,
-                );
+              data: (streak) => weeklyStats.when(
+                data: (stats) {
+                  final healthScore = ProgressSummaryCard.calculateHealthScore(
+                    diastasisImprovement: null,
+                    pelvicFloorImprovement: null,
+                    workoutStreak: streak.currentStreak,
+                    completedWorkouts: stats.totalWorkouts,
+                  );
 
-                return ProgressSummaryCard(
-                  startDate: DateTime.now().subtract(const Duration(days: 14)),
-                  weekNumber: 3,
-                  healthScore: healthScore,
-                  motivationalMessage: ProgressSummaryCard.getMotivationalMessage(
-                    healthScore,
-                    3,
-                  ),
-                );
-              },
+                  return ProgressSummaryCard(
+                    startDate: DateTime.now().subtract(const Duration(days: 14)),
+                    weekNumber: 3,
+                    healthScore: healthScore,
+                    motivationalMessage: ProgressSummaryCard.getMotivationalMessage(
+                      healthScore,
+                      3,
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
             ),
@@ -539,6 +551,7 @@ class _ProgressDashboardScreenState
     AsyncValue<WorkoutStreak> workoutStreak,
     AsyncValue<WeeklyWorkoutStats> weeklyStats,
     AsyncValue<List<Progress>> photoProgress,
+    AsyncValue<List<WorkoutSession>> workoutSessions,
   ) {
     return RefreshIndicator(
       onRefresh: () async {
@@ -625,10 +638,21 @@ class _ProgressDashboardScreenState
             const SizedBox(height: 24),
 
             // Calendar Heatmap
-            // Note: This would need actual workout session data
-            const WorkoutCalendarHeatmap(
-              sessions: [], // TODO: Pass actual workout sessions
-              monthsToShow: 3,
+            workoutSessions.when(
+              data: (sessions) => WorkoutCalendarHeatmap(
+                sessions: sessions,
+                monthsToShow: 3,
+              ),
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (_, __) => const WorkoutCalendarHeatmap(
+                sessions: [],
+                monthsToShow: 3,
+              ),
             ),
             const SizedBox(height: 24),
 

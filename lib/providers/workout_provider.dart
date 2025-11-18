@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../database/app_database.dart';
 import 'database_provider.dart';
+import 'progress_provider.dart';
 
 part 'workout_provider.g.dart';
 
@@ -157,6 +158,11 @@ class CurrentWorkoutSession extends _$CurrentWorkoutSession {
 
     // Mark the workout as completed if not already
     await db.workoutDao.markWorkoutAsCompleted(state!.workoutId);
+
+    // Invalidate progress providers to refresh the dashboard
+    ref.invalidate(workoutStreakProvider);
+    ref.invalidate(weeklyWorkoutStatsProvider);
+    ref.invalidate(achievementsProvider);
 
     // Clear the current workout state
     state = null;
