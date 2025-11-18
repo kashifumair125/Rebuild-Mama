@@ -36,11 +36,16 @@ import '../ui/screens/home/workout_list_screen.dart';
 import '../ui/screens/workout/kegel_trainer_screen.dart';
 import '../ui/screens/progress/progress_dashboard_screen.dart';
 
+// Settings screens
+import '../ui/screens/settings/language_screen.dart';
+import '../ui/screens/settings/privacy_screen.dart';
+import '../ui/screens/settings/about_screen.dart';
+import '../ui/screens/settings/edit_profile_screen.dart';
+import '../ui/screens/settings/change_password_screen.dart';
+import '../ui/screens/settings/send_feedback_screen.dart';
+
 // TODO: Import remaining screens once they are implemented
 // import '../ui/screens/progress/photo_progress_screen.dart';
-// import '../ui/screens/settings/language_screen.dart';
-// import '../ui/screens/settings/privacy_screen.dart';
-// import '../ui/screens/settings/about_screen.dart';
 // import '../ui/screens/auth/forgot_password_screen.dart';
 
 /// App Router Configuration using GoRouter
@@ -86,6 +91,9 @@ class AppRouter {
   static const String language = '/settings/language';
   static const String privacy = '/settings/privacy';
   static const String about = '/settings/about';
+  static const String editProfile = '/settings/edit-profile';
+  static const String changePassword = '/settings/change-password';
+  static const String sendFeedback = '/settings/send-feedback';
 
   /// Router instance
   static GoRouter router = GoRouter(
@@ -268,29 +276,32 @@ class AppRouter {
       GoRoute(
         path: language,
         name: 'language',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Language Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const LanguageScreen(),
       ),
       GoRoute(
         path: privacy,
         name: 'privacy',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Privacy Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const PrivacyScreen(),
       ),
       GoRoute(
         path: about,
         name: 'about',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('About Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: editProfile,
+        name: 'editProfile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: changePassword,
+        name: 'changePassword',
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: sendFeedback,
+        name: 'sendFeedback',
+        builder: (context, state) => const SendFeedbackScreen(),
       ),
     ],
 

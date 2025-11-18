@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  // Primary brand color
+  static const Color primary = Color(0xFFFFB6C1); // Light pink
+
   // Semantic colors for specific use cases
   static const Color success = Color(0xFF6BCF7F);
   static const Color warning = Color(0xFFFFC837);

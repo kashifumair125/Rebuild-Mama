@@ -51,8 +51,10 @@ class WorkoutListScreen extends ConsumerWidget {
           }
 
           // Watch workouts for this level
+          // Convert Firebase UID to database user ID using hash
+          final dbUserId = user.uid.hashCode.abs();
           final workoutsAsync = ref.watch(
-            watchWorkoutsByLevelProvider(user.id, level!),
+            watchWorkoutsByLevelProvider(dbUserId, level!),
           );
 
           return workoutsAsync.when(
@@ -64,7 +66,7 @@ class WorkoutListScreen extends ConsumerWidget {
               return _WorkoutListView(
                 workouts: workouts,
                 level: level!,
-                userId: user.id,
+                userId: user.uid,
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -251,7 +253,7 @@ class _EmptyWorkoutList extends StatelessWidget {
 class _WorkoutListView extends ConsumerWidget {
   final List<Workout> workouts;
   final int level;
-  final int userId;
+  final String userId;
 
   const _WorkoutListView({
     required this.workouts,
@@ -262,8 +264,11 @@ class _WorkoutListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    // Convert Firebase UID (String) to database user ID (int)
+    // Using a simple hash for now - TODO: Implement proper user mapping
+    final dbUserId = userId.hashCode.abs();
     final completionAsync = ref.watch(
-      levelCompletionPercentageProvider(userId, level),
+      levelCompletionPercentageProvider(dbUserId, level),
     );
 
     return Column(
@@ -330,7 +335,7 @@ class _WorkoutListView extends ConsumerWidget {
                 workout: workout,
                 level: level,
                 onTap: () => context.push(
-                  AppRouter.workoutDetail.replaceFirst(':id', '${workout.id}'),
+                  AppRouter.workoutDetail.replaceFirst(':id', '${workout.workoutId}'),
                 ),
               );
             },

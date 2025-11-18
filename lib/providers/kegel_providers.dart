@@ -14,14 +14,14 @@ final ttsServiceProvider = Provider<TTSService>((ref) {
 final kegelSessionProvider =
     StateNotifierProvider<KegelSessionNotifier, KegelSessionState>((ref) {
   final ttsService = ref.watch(ttsServiceProvider);
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
 
   return KegelSessionNotifier(ttsService, database);
 });
 
 /// Kegel sessions history provider
 final kegelSessionsHistoryProvider = FutureProvider<List<KegelSession>>((ref) async {
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
   // Using placeholder userId 1
   final userId = 1;
 
@@ -30,7 +30,7 @@ final kegelSessionsHistoryProvider = FutureProvider<List<KegelSession>>((ref) as
 
 /// Kegel streak provider
 final kegelStreakProvider = FutureProvider<int>((ref) async {
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
   // Using placeholder userId 1
   final userId = 1;
 
@@ -39,7 +39,7 @@ final kegelStreakProvider = FutureProvider<int>((ref) async {
 
 /// Kegel statistics provider
 final kegelStatisticsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
   // Using placeholder userId 1
   final userId = 1;
 
@@ -48,7 +48,7 @@ final kegelStatisticsProvider = FutureProvider<Map<String, dynamic>>((ref) async
 
 /// Today's sessions provider
 final todayKegelSessionsProvider = StreamProvider<List<KegelSession>>((ref) {
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
   // Using placeholder userId 1
   final userId = 1;
 
@@ -57,7 +57,7 @@ final todayKegelSessionsProvider = StreamProvider<List<KegelSession>>((ref) {
 
 /// Weekly statistics provider
 final weeklyKegelStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
   // Using placeholder userId 1
   final userId = 1;
 
@@ -66,7 +66,7 @@ final weeklyKegelStatsProvider = FutureProvider<Map<String, dynamic>>((ref) asyn
 
 /// Monthly statistics provider
 final monthlyKegelStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  final database = ref.watch(databaseProvider);
+  final database = ref.watch(appDatabaseProvider);
   // Using placeholder userId 1
   final userId = 1;
 
