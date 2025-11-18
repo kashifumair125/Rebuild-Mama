@@ -73,25 +73,27 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
   Widget build(BuildContext context) {
     final sessionState = ref.watch(kegelSessionProvider);
     final ttsService = ref.watch(ttsServiceProvider);
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Kegel Exercise Trainer',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
+            color: theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface,
           ),
         ),
-        backgroundColor: Colors.grey[850],
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         actions: [
           // Mute/Unmute button
           IconButton(
             icon: Icon(
               ttsService.isMuted ? Icons.volume_off : Icons.volume_up,
-              color: Colors.white,
             ),
             onPressed: () {
               ttsService.toggleMute();
@@ -100,7 +102,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
           ),
           // Settings button
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               setState(() {
                 _showSettings = !_showSettings;
@@ -173,7 +175,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
                     gradient: RadialGradient(
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.3),
+                        (isDarkMode ? Colors.black : Colors.grey).withOpacity(0.2),
                       ],
                     ),
                   ),
@@ -186,14 +188,16 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
   }
 
   Widget _buildSettingsPanel() {
+    final theme = Theme.of(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.grey[850],
+        color: theme.colorScheme.surfaceVariant,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -207,7 +211,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -311,6 +315,8 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
     required String unit,
     required ValueChanged<double> onChanged,
   }) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -321,7 +327,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
               label,
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: Colors.grey[400],
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
             Text(
@@ -329,7 +335,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],
@@ -339,8 +345,8 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
           min: min,
           max: max,
           divisions: divisions,
-          activeColor: const Color(0xFF4D96FF),
-          inactiveColor: Colors.grey[700],
+          activeColor: theme.colorScheme.primary,
+          inactiveColor: theme.colorScheme.outline.withOpacity(0.3),
           onChanged: onChanged,
         ),
       ],
@@ -384,6 +390,9 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
   }
 
   Widget _buildCircularProgress(KegelSessionState state) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return AnimatedBuilder(
       animation: _pulseAnimation,
       builder: (context, child) {
@@ -405,7 +414,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
                   height: 300,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.grey[800],
+                    color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
                     boxShadow: [
                       BoxShadow(
                         color: state.getPhaseColor().withOpacity(0.3),
@@ -423,7 +432,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
                   child: CircularProgressIndicator(
                     value: state.progress,
                     strokeWidth: 12,
-                    backgroundColor: Colors.grey[700],
+                    backgroundColor: isDarkMode ? Colors.grey[700] : Colors.grey[300],
                     valueColor: AlwaysStoppedAnimation<Color>(
                       state.getPhaseColor(),
                     ),
@@ -439,6 +448,15 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
                       size: 64,
                       color: state.getPhaseColor(),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _getPhaseInstruction(state.currentPhase),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ],
@@ -447,6 +465,19 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
         );
       },
     );
+  }
+
+  String _getPhaseInstruction(KegelPhase phase) {
+    switch (phase) {
+      case KegelPhase.contract:
+        return 'Squeeze pelvic floor\nmuscles upward';
+      case KegelPhase.hold:
+        return 'Keep squeezing\nand holding';
+      case KegelPhase.release:
+        return 'Slowly relax\nthe muscles';
+      case KegelPhase.rest:
+        return 'Rest and breathe\nnormally';
+    }
   }
 
   IconData _getPhaseIcon(KegelPhase phase) {
@@ -479,22 +510,27 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
   }
 
   Widget _buildTimeDisplay(KegelSessionState state) {
+    final theme = Theme.of(context);
+
     return Text(
       '${state.remainingSeconds}s',
       style: GoogleFonts.poppins(
         fontSize: 72,
         fontWeight: FontWeight.w800,
-        color: Colors.white,
+        color: theme.colorScheme.onSurface,
         height: 1,
       ),
     );
   }
 
   Widget _buildRepCounter(KegelSessionState state) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[800],
+        color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
         borderRadius: BorderRadius.circular(24),
       ),
       child: Text(
@@ -504,13 +540,14 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
         style: GoogleFonts.poppins(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: theme.colorScheme.onSurface,
         ),
       ),
     );
   }
 
   Widget _buildEncouragingMessage(KegelSessionState state) {
+    final theme = Theme.of(context);
     final messages = [
       "You're doing great!",
       "Keep up the excellent work!",
@@ -528,7 +565,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
         style: GoogleFonts.poppins(
           fontSize: 18,
           fontWeight: FontWeight.w500,
-          color: Colors.grey[400],
+          color: theme.colorScheme.onSurface.withOpacity(0.6),
           fontStyle: FontStyle.italic,
         ),
         textAlign: TextAlign.center,
@@ -537,13 +574,15 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
   }
 
   Widget _buildControls(KegelSessionState state) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.grey[850],
+        color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -614,6 +653,8 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
     required Color color,
     required VoidCallback onPressed,
   }) {
+    final theme = Theme.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -642,7 +683,7 @@ class _KegelTrainerScreenState extends ConsumerState<KegelTrainerScreen>
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.grey[400],
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
           ),
         ),
       ],
