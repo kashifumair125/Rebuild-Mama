@@ -30,11 +30,13 @@ import '../ui/screens/settings/settings_screen.dart';
 import '../ui/screens/auth/login_screen.dart';
 import '../ui/screens/auth/signup_screen.dart';
 
+// Implemented screens
+import '../ui/screens/home/level_selection_screen.dart';
+import '../ui/screens/home/workout_list_screen.dart';
+import '../ui/screens/workout/kegel_trainer_screen.dart';
+import '../ui/screens/progress/progress_dashboard_screen.dart';
+
 // TODO: Import remaining screens once they are implemented
-// import '../ui/screens/home/level_selection_screen.dart';
-// import '../ui/screens/home/workout_list_screen.dart';
-// import '../ui/screens/workout/kegel_trainer_screen.dart';
-// import '../ui/screens/progress/progress_dashboard_screen.dart';
 // import '../ui/screens/progress/photo_progress_screen.dart';
 // import '../ui/screens/settings/language_screen.dart';
 // import '../ui/screens/settings/privacy_screen.dart';
@@ -143,20 +145,16 @@ class AppRouter {
       GoRoute(
         path: levelSelection,
         name: 'levelSelection',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Level Selection Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const LevelSelectionScreen(),
       ),
       GoRoute(
         path: workoutList,
         name: 'workoutList',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Workout List Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) {
+          final levelStr = state.uri.queryParameters['level'];
+          final level = levelStr != null ? int.tryParse(levelStr) : null;
+          return WorkoutListScreen(level: level);
+        },
       ),
 
       // Workout Routes
@@ -198,22 +196,14 @@ class AppRouter {
       GoRoute(
         path: kegelTrainer,
         name: 'kegelTrainer',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Kegel Trainer Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const KegelTrainerScreen(),
       ),
 
       // Progress Routes
       GoRoute(
         path: progressDashboard,
         name: 'progressDashboard',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Progress Dashboard Screen - TODO: Implement'),
-          ),
-        ),
+        builder: (context, state) => const ProgressDashboardScreen(),
       ),
       GoRoute(
         path: diastasisRecti,
