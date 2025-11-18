@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/routes.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/biometric_provider.dart';
 import '../../../providers/preferences_provider.dart';
 import '../../../utils/logger.dart';
 
@@ -140,6 +141,47 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRouter.changePassword),
           ),
+          
+          // Biometric Lock Option
+          Consumer(
+            builder: (context, ref, child) {
+              final biometricAvailable = ref.watch(isBiometricAvailableProvider);
+              final biometricEnabled = ref.watch(isBiometricEnabledProvider);
+              
+              return biometricAvailable.when(
+                data: (available) {
+                  if (available) {
+                    return SwitchListTile(
+                      title: const Text('Biometric Lock'),
+                      subtitle: const Text('Use fingerprint/face ID to unlock app'),
+                      secondary: Icon(
+                        Icons.fingerprint,
+                        color: theme.colorScheme.primary,
+                      ),
+                      value: biometricEnabled.value ?? false,
+                      onChanged: (value) async {
+                        final service = ref.read(biometricServiceProvider);
+                        if (value) {
+                          final authenticated = await service.authenticate();
+                          if (authenticated) {
+                            await service.enableBiometric();
+                            ref.invalidate(isBiometricEnabledProvider);
+                          }
+                        } else {
+                          await service.disableBiometric();
+                          ref.invalidate(isBiometricEnabledProvider);
+                        }
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              );
+            },
+          ),
+          
           ListTile(
             leading: Icon(
               Icons.feedback_outlined,

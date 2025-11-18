@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/biometric_provider.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../utils/logger.dart';
 
@@ -55,9 +56,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         return;
       }
 
-      // Everything is good, navigate to home
-      AppLogger.info('User authenticated and onboarded, navigating to home');
-      if (mounted) context.go(AppRouter.home);
+      // Check if biometric is enabled
+      final biometricService = ref.read(biometricServiceProvider);
+      final biometricEnabled = await biometricService.isBiometricEnabled();
+      
+      if (biometricEnabled) {
+        // Show biometric lock screen
+        AppLogger.info('Biometric enabled, showing biometric lock screen');
+        if (mounted) context.go(AppRouter.biometricLock);
+      } else {
+        // Everything is good, navigate to home
+        AppLogger.info('User authenticated and onboarded, navigating to home');
+        if (mounted) context.go(AppRouter.home);
+      }
 
     } catch (e, stackTrace) {
       AppLogger.error(
