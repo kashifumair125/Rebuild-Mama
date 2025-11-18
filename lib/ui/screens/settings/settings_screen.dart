@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../config/routes.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/preferences_provider.dart';
+import '../../../providers/biometric_provider.dart';
 import '../../../utils/logger.dart';
 
 /// Settings screen for app preferences and account management
@@ -139,6 +140,39 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Change Password'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRouter.changePassword),
+          ),
+          // Biometric Lock
+          ref.watch(isBiometricAvailableProvider).when(
+            data: (available) {
+              if (!available) return const SizedBox.shrink();
+
+              final biometricState = ref.watch(biometricEnabledNotifierProvider);
+              final isEnabled = biometricState.valueOrNull ?? false;
+
+              return SwitchListTile(
+                title: const Text('Biometric Lock'),
+                subtitle: const Text('Use fingerprint/face ID to unlock app'),
+                secondary: Icon(
+                  Icons.fingerprint,
+                  color: theme.colorScheme.primary,
+                ),
+                value: isEnabled,
+                onChanged: (value) async {
+                  final success = await ref
+                      .read(biometricEnabledNotifierProvider.notifier)
+                      .toggle();
+                  if (!success && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Biometric authentication failed'),
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
           ListTile(
             leading: Icon(

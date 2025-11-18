@@ -212,47 +212,58 @@ class _ProgressDashboardScreenState
     WorkoutStreak streak,
     WeeklyWorkoutStats stats,
   ) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.5,
-      children: [
-        _buildStatCard(
-          theme,
-          'Workout Streak',
-          '${streak.currentStreak} days',
-          Icons.local_fire_department,
-          AppColors.danger,
-          streak.currentStreak > 0,
-        ),
-        _buildStatCard(
-          theme,
-          'This Week',
-          '${stats.workoutsThisWeek}/7',
-          Icons.calendar_today,
-          AppColors.primary,
-          stats.workoutsThisWeek > 0,
-        ),
-        _buildStatCard(
-          theme,
-          'Total Time',
-          '${stats.totalTime} min',
-          Icons.timer,
-          AppColors.info,
-          stats.totalTime > 0,
-        ),
-        _buildStatCard(
-          theme,
-          'Calories',
-          '${stats.caloriesBurned} kcal',
-          Icons.local_fire_department_outlined,
-          AppColors.warning,
-          stats.caloriesBurned > 0,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate aspect ratio based on screen width
+        final screenWidth = constraints.maxWidth;
+        final cardWidth = (screenWidth - 12) / 2;
+        // Ensure minimum height for content
+        final cardHeight = cardWidth / 1.3;
+        final aspectRatio = cardWidth / cardHeight;
+
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: aspectRatio.clamp(1.0, 1.4),
+          children: [
+            _buildStatCard(
+              theme,
+              'Streak',
+              '${streak.currentStreak} days',
+              Icons.local_fire_department,
+              AppColors.danger,
+              streak.currentStreak > 0,
+            ),
+            _buildStatCard(
+              theme,
+              'This Week',
+              '${stats.workoutsThisWeek}/7',
+              Icons.calendar_today,
+              AppColors.primary,
+              stats.workoutsThisWeek > 0,
+            ),
+            _buildStatCard(
+              theme,
+              'Total Time',
+              '${stats.totalTime} min',
+              Icons.timer,
+              AppColors.info,
+              stats.totalTime > 0,
+            ),
+            _buildStatCard(
+              theme,
+              'Calories',
+              '${stats.caloriesBurned} kcal',
+              Icons.local_fire_department_outlined,
+              AppColors.warning,
+              stats.caloriesBurned > 0,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -270,7 +281,7 @@ class _ProgressDashboardScreenState
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -278,27 +289,37 @@ class _ProgressDashboardScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
+                const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: color, size: 20),
+                  child: Icon(icon, color: color, size: 18),
                 ),
               ],
             ),
-            Text(
-              value,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: hasData ? color : theme.colorScheme.onSurface.withOpacity(0.3),
+            const Spacer(),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: hasData ? color : theme.colorScheme.onSurface.withOpacity(0.3),
+                ),
               ),
             ),
           ],

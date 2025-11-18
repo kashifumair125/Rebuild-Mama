@@ -157,45 +157,252 @@ class _NoLevelSelected extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.fitness_center,
-              size: 80,
-              color: theme.colorScheme.primary.withOpacity(0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Select a Workout Level',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Choose a level to see available workouts',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => context.push(AppRouter.levelSelection),
-              icon: const Icon(Icons.list_alt),
-              label: const Text('View Levels'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Your Workout Level',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choose a level based on your postpartum recovery stage',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Level 1
+          _InlineLevelCard(
+            level: 1,
+            title: 'Level 1: Repair',
+            subtitle: '0-6 weeks postpartum',
+            description: 'Gentle exercises to reconnect with your core and pelvic floor',
+            color: const Color(0xFFFFB6C1),
+            icon: Icons.healing_rounded,
+            benefits: [
+              'Gentle pelvic floor activation',
+              'Basic breathing exercises',
+              'Postural awareness',
+            ],
+            onTap: () => onLevelSelected(1),
+          ),
+          const SizedBox(height: 12),
+
+          // Level 2
+          _InlineLevelCard(
+            level: 2,
+            title: 'Level 2: Rebuild',
+            subtitle: '6-12 weeks postpartum',
+            description: 'Progressive strengthening of core and pelvic floor',
+            color: const Color(0xFFFFDAB9),
+            icon: Icons.trending_up_rounded,
+            benefits: [
+              'Core strengthening',
+              'Functional movements',
+              'Improved coordination',
+            ],
+            onTap: () => onLevelSelected(2),
+          ),
+          const SizedBox(height: 12),
+
+          // Level 3
+          _InlineLevelCard(
+            level: 3,
+            title: 'Level 3: Strengthen',
+            subtitle: '12+ weeks postpartum',
+            description: 'Advanced exercises for full-body strength and endurance',
+            color: const Color(0xFFE0FFF0),
+            icon: Icons.fitness_center_rounded,
+            benefits: [
+              'Full-body strength training',
+              'High-intensity exercises',
+              'Athletic performance',
+            ],
+            onTap: () => onLevelSelected(3),
+          ),
+          const SizedBox(height: 20),
+
+          // Safety Notice
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.errorContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.error.withOpacity(0.5),
               ),
             ),
-          ],
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: theme.colorScheme.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Always consult with your healthcare provider before starting any exercise program postpartum.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineLevelCard extends StatelessWidget {
+  final int level;
+  final String title;
+  final String subtitle;
+  final String description;
+  final Color color;
+  final IconData icon;
+  final List<String> benefits;
+  final VoidCallback onTap;
+
+  const _InlineLevelCard({
+    required this.level,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.color,
+    required this.icon,
+    required this.benefits,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                color.withOpacity(0.3),
+                color.withOpacity(0.1),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with icon
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Description
+                Text(
+                  description,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.8),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Benefits
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: benefits.map((benefit) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        benefit,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  )).toList(),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
