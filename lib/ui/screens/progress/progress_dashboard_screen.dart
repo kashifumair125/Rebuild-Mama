@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart' as drift;
 import '../../../providers/progress_provider.dart';
 import '../../../providers/assessment_provider.dart';
-import '../../../providers/workout_provider.dart';
+import '../../../providers/workout_provider.dart' hide workoutStreakProvider;
 import '../../../database/app_database.dart';
 import '../../../providers/database_provider.dart';
 import '../../widgets/diastasis_chart_widget.dart';
