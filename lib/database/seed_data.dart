@@ -379,7 +379,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level2/bridges.json'),
         setsReps: const Value('3 sets x 10 reps'),
-        durationSeconds: const Value(120),
+        durationSeconds: const Value(180),
         orderIndex: const Value(1),
       ),
 
@@ -494,7 +494,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level2/squats.json'),
         setsReps: const Value('3 sets x 12 reps'),
-        durationSeconds: const Value(120),
+        durationSeconds: const Value(180),
         orderIndex: const Value(3),
       ),
 
@@ -553,7 +553,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level2/bird_dog.json'),
         setsReps: const Value('10 reps each side'),
-        durationSeconds: const Value(120),
+        durationSeconds: const Value(180),
         orderIndex: const Value(4),
       ),
 
@@ -687,7 +687,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level3/full_planks.json'),
         setsReps: const Value('3 sets x 30-60 seconds'),
-        durationSeconds: const Value(120),
+        durationSeconds: const Value(180),
         orderIndex: const Value(1),
       ),
 
@@ -807,7 +807,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level3/mountain_climbers.json'),
         setsReps: const Value('3 sets x 20 seconds'),
-        durationSeconds: const Value(60),
+        durationSeconds: const Value(120),
         orderIndex: const Value(3),
       ),
 
@@ -865,7 +865,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level3/dead_bugs.json'),
         setsReps: const Value('3 sets x 10 reps each side'),
-        durationSeconds: const Value(120),
+        durationSeconds: const Value(180),
         orderIndex: const Value(4),
       ),
 
@@ -924,7 +924,7 @@ SAFETY NOTES:
         ),
         animationPath: const Value('assets/animations/level3/jump_squats.json'),
         setsReps: const Value('3 sets x 10 reps'),
-        durationSeconds: const Value(60),
+        durationSeconds: const Value(120),
         orderIndex: const Value(5),
       ),
     ];
