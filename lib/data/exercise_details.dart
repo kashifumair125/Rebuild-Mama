@@ -344,7 +344,7 @@ class ExerciseDatabase {
     'glute_bridges': ExerciseDetail(
       name: 'Glute Bridges',
       level: 2,
-      duration: '2 minutes',
+      duration: '3 minutes',
       difficulty: 'Intermediate',
       animationPath: 'assets/animations/bridges.json',
       description: 'Strengthen glutes and hamstrings while engaging core.',
@@ -464,7 +464,7 @@ class ExerciseDatabase {
     'bodyweight_squats': ExerciseDetail(
       name: 'Bodyweight Squats',
       level: 2,
-      duration: '2 minutes',
+      duration: '3 minutes',
       difficulty: 'Intermediate',
       animationPath: 'assets/animations/squats.json',
       description: 'Fundamental lower body exercise for functional strength.',
@@ -521,7 +521,7 @@ class ExerciseDatabase {
     'bird_dog': ExerciseDetail(
       name: 'Bird Dog',
       level: 2,
-      duration: '2 minutes',
+      duration: '3 minutes',
       difficulty: 'Intermediate',
       animationPath: 'assets/animations/bird_dog.json',
       description: 'Core stability exercise that challenges balance and coordination.',
@@ -633,7 +633,7 @@ class ExerciseDatabase {
     'full_planks': ExerciseDetail(
       name: 'Full Plank',
       level: 3,
-      duration: '2 minutes',
+      duration: '3 minutes',
       difficulty: 'Advanced',
       animationPath: 'assets/animations/full_planks.json',
       description: 'Advanced core stability exercise for full-body strength.',
@@ -688,7 +688,7 @@ class ExerciseDatabase {
     'lunges': ExerciseDetail(
       name: 'Lunges',
       level: 3,
-      duration: '2 minutes',
+      duration: '4 minutes',
       difficulty: 'Advanced',
       animationPath: 'assets/animations/lunges.json',
       description: 'Single-leg strength exercise for balance and power.',
@@ -750,7 +750,7 @@ class ExerciseDatabase {
     'mountain_climbers': ExerciseDetail(
       name: 'Mountain Climbers',
       level: 3,
-      duration: '1 minute',
+      duration: '2 minutes',
       difficulty: 'Advanced',
       animationPath: 'assets/animations/mountain_climbers.json',
       description: 'Dynamic cardio exercise that builds core strength and endurance.',
@@ -803,7 +803,7 @@ class ExerciseDatabase {
     'dead_bugs': ExerciseDetail(
       name: 'Dead Bugs',
       level: 3,
-      duration: '2 minutes',
+      duration: '3 minutes',
       difficulty: 'Advanced',
       animationPath: 'assets/animations/dead_bugs.json',
       description: 'Advanced core stability exercise that\'s safe for diastasis recti.',
@@ -859,7 +859,7 @@ class ExerciseDatabase {
     'jump_squats': ExerciseDetail(
       name: 'Jump Squats',
       level: 3,
-      duration: '1 minute',
+      duration: '2 minutes',
       difficulty: 'Advanced',
       animationPath: 'assets/animations/jump_squats.json',
       description: 'Plyometric exercise for power. ONLY if cleared by doctor.',
